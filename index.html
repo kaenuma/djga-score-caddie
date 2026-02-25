@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DJGA Score Caddie</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛳</text></svg>">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Barlow+Condensed:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --g9:#081a10;--g8:#0f2a1a;--g7:#163824;--g6:#1d4a2e;--g5:#275e3c;--g4:#3d7a52;--g3:#5a9e70;
+  --gold:#c8a44a;--gold2:#e4c56e;--gold3:#f6e9c0;
+  --ink:#1c1c1c;--ink2:#444;--ink3:#777;--ink4:#aaa;
+  --bg:#f2ede3;--bg2:#faf7f1;--white:#fdfdfc;
+  --bdr:#e2ddd2;--r:14px;--r2:10px;--r3:7px;
+}
+html{font-size:16px;-webkit-text-size-adjust:100%;}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;}
+.app{min-height:100svh;display:flex;flex-direction:column;max-width:520px;margin:0 auto;}
+.topbar{background:var(--g9);padding:0 12px;display:flex;align-items:center;gap:8px;height:52px;position:sticky;top:0;z-index:100;border-bottom:1px solid rgba(200,164,74,.2);}
+.topbar-back{background:none;border:none;color:rgba(255,255,255,.55);font-size:22px;cursor:pointer;padding:0 6px;line-height:1;flex-shrink:0;}
+.topbar-back:active{color:var(--gold2);}
+.topbar-logo{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:var(--gold2);letter-spacing:1px;}
+.topbar-sep{width:1px;height:18px;background:rgba(255,255,255,.15);}
+.topbar-info{font-size:12px;color:rgba(255,255,255,.4);line-height:1.3;}
+.topbar-info strong{display:block;font-size:11px;color:rgba(255,255,255,.6);font-weight:500;}
+.topbar-space{flex:1;}
+
+.home{padding:24px 16px;flex:1;}
+.home-logo{text-align:center;margin-bottom:28px;}
+.home-logo-icon{font-size:56px;margin-bottom:8px;}
+.home-logo-text{font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:700;color:var(--g7);letter-spacing:3px;}
+.home-logo-sub{font-size:12px;color:var(--ink3);margin-top:2px;letter-spacing:1px;}
+.home-menu{display:flex;flex-direction:column;gap:10px;}
+.home-btn{display:flex;align-items:center;gap:14px;background:var(--white);border:2px solid var(--bdr);border-radius:var(--r);padding:16px;cursor:pointer;transition:all .12s;text-align:left;width:100%;font-family:inherit;}
+.home-btn:active{border-color:var(--g4);background:var(--bg2);}
+.home-btn-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.home-btn-icon.cfg{background:#5c4a1e;color:var(--gold2);}
+.home-btn-icon.grp{background:var(--g7);color:white;}
+.home-btn-icon.score{background:var(--gold);color:var(--g9);}
+.home-btn-icon.rank{background:#2c5282;color:white;}
+.home-btn-label{font-size:16px;font-weight:700;color:var(--ink);}
+.home-btn-desc{font-size:12px;color:var(--ink3);margin-top:2px;}
+.home-btn-arrow{margin-left:auto;color:var(--ink4);font-size:20px;}
+
+.cfg{padding:16px;flex:1;}
+.cfg-title{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--g7);margin-bottom:4px;}
+.cfg-sub{font-size:12px;color:var(--ink3);margin-bottom:16px;line-height:1.6;}
+.cfg-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:14px;margin-bottom:12px;}
+.cfg-label{font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.cfg-input{width:100%;padding:10px 14px;border:2px solid var(--bdr);border-radius:var(--r2);font-size:14px;background:var(--white);font-family:inherit;outline:none;transition:border-color .12s;}
+.cfg-input:focus{border-color:var(--g4);}
+.cfg-row{display:flex;gap:8px;align-items:center;}
+.cfg-sm{width:80px;padding:8px;text-align:center;border:2px solid var(--bdr);border-radius:var(--r3);font-size:15px;font-weight:700;background:var(--white);font-family:'DM Mono',monospace;outline:none;}
+.cfg-sm:focus{border-color:var(--g4);}
+.par-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:4px;}
+.par-cell{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.par-cell-num{font-size:10px;color:var(--ink4);font-weight:600;}
+.par-cell select{width:100%;padding:6px 2px;border:1.5px solid var(--bdr);border-radius:5px;font-size:14px;font-weight:700;text-align:center;background:var(--white);font-family:'DM Mono',monospace;color:var(--ink);cursor:pointer;appearance:none;-webkit-appearance:none;}
+.par-cell input{width:100%;padding:5px 2px;border:1.5px solid var(--bdr);border-radius:5px;font-size:12px;text-align:center;background:var(--white);font-family:'DM Mono',monospace;color:var(--ink2);outline:none;}
+.par-cell input:focus,.par-cell select:focus{border-color:var(--g4);}
+.hidden-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:5px;}
+.hidden-btn{aspect-ratio:1;border-radius:8px;border:2.5px solid var(--bdr);background:var(--white);font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:var(--ink3);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .12s;gap:1px;}
+.hidden-btn:active{transform:scale(.93);}
+.hidden-btn.on{border-color:var(--gold);background:var(--gold3);color:var(--g7);}
+.hidden-par{font-size:9px;font-weight:400;opacity:.6;}
+.nine-label{font-size:11px;font-weight:700;color:var(--ink4);margin-bottom:6px;margin-top:10px;letter-spacing:1px;}
+
+.conn-status{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--r2);font-size:12px;font-weight:600;margin-bottom:12px;}
+.conn-status.ok{background:#d8f0e3;color:#1a6b35;border:1px solid #a8d8b8;}
+.conn-status.err{background:#ffe4e4;color:#991111;border:1px solid #f0b0b0;}
+.conn-status.loading{background:var(--gold3);color:#7a4e00;border:1px solid var(--gold);}
+.conn-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+
+.gm{padding:16px;flex:1;}
+.gm-title{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--g7);margin-bottom:4px;}
+.gm-sub{font-size:12px;color:var(--ink3);margin-bottom:16px;line-height:1.6;}
+.gm-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:20px;}
+.gm-num{aspect-ratio:1;border-radius:var(--r3);border:2px solid var(--bdr);background:var(--white);font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:var(--ink2);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .12s;gap:2px;}
+.gm-num:active{transform:scale(.94);}
+.gm-num.has{border-color:var(--g4);background:var(--g7);color:white;}
+.gm-count{font-size:9px;font-weight:400;opacity:.6;}
+
+.gd{padding:16px;flex:1;}
+.gd-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.gd-num{width:52px;height:52px;border-radius:14px;background:var(--g7);color:var(--gold2);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:700;}
+.gd-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:var(--g7);}
+.gd-subtitle{font-size:12px;color:var(--ink3);}
+.gd-section{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:14px;margin-bottom:12px;}
+.gd-sec-title{font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.member-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bdr);}
+.member-row:last-child{border-bottom:none;}
+.member-avatar{width:34px;height:34px;border-radius:50%;background:var(--g6);color:white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+.member-name{flex:1;font-size:14px;font-weight:600;}
+.member-tee{padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;cursor:pointer;border:2px solid;transition:all .12s;background:none;font-family:inherit;}
+.member-tee.white{border-color:#ccc;background:#f8f8f8;color:#555;}
+.member-tee.red{border-color:#e09090;background:#fdeaea;color:#aa2222;}
+.member-del{width:28px;height:28px;border-radius:50%;border:none;background:#fee;color:#c44;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.add-row{display:flex;gap:8px;margin-top:12px;}
+.add-input{flex:1;padding:10px 14px;border:2px solid var(--bdr);border-radius:var(--r2);font-size:14px;background:var(--white);font-family:inherit;outline:none;}
+.add-input:focus{border-color:var(--g4);}
+.add-btn{padding:10px 18px;background:var(--g5);color:white;border:none;border-radius:var(--r2);font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;}
+.add-btn:disabled{opacity:.4;}
+.qr-section{background:var(--white);border:2px solid var(--g4);border-radius:var(--r);padding:20px;margin-bottom:12px;text-align:center;}
+.qr-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--g7);margin-bottom:4px;}
+.qr-sub{font-size:11px;color:var(--ink3);margin-bottom:14px;}
+.qr-img-wrap{display:inline-block;padding:12px;background:var(--bg);border-radius:12px;margin-bottom:12px;}
+.qr-link-box{display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r3);padding:8px 12px;margin-bottom:10px;}
+.qr-link-text{flex:1;font-size:11px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'DM Mono',monospace;}
+.qr-copy-btn{padding:6px 14px;background:var(--g5);color:white;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;font-family:inherit;}
+.qr-copy-btn.copied{background:var(--gold);color:var(--g9);}
+.qr-hint{font-size:10px;color:var(--ink4);line-height:1.6;}
+
+.hole-header{background:linear-gradient(180deg,var(--g8) 0%,var(--g7) 100%);padding:12px 14px 14px;border-bottom:1px solid rgba(200,164,74,.2);}
+.hole-nav{display:flex;align-items:center;gap:0;margin-bottom:10px;}
+.hole-nav-btn{width:40px;height:40px;border-radius:var(--r2);border:1.5px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.hole-dots{flex:1;display:flex;justify-content:center;align-items:center;gap:3px;padding:0 4px;}
+.hole-dot{width:20px;height:20px;border-radius:5px;border:none;cursor:pointer;flex-shrink:0;font-size:9px;font-weight:700;font-family:'DM Mono',monospace;display:flex;align-items:center;justify-content:center;transition:all .12s;}
+.hole-dot.empty{background:rgba(255,255,255,.1);color:rgba(255,255,255,.4);}
+.hole-dot.partial{background:var(--g5);color:rgba(255,255,255,.9);}
+.hole-dot.done{background:var(--g3);color:white;}
+.hole-dot.active{background:var(--gold);color:var(--g9);transform:scale(1.15);font-weight:900;}
+.hole-dot.startmark{box-shadow:0 0 0 2px var(--gold2);}
+.hole-main{display:flex;align-items:flex-end;gap:14px;}
+.hole-num{font-family:'Barlow Condensed',sans-serif;font-size:60px;font-weight:700;color:white;line-height:1;flex-shrink:0;}
+.hole-meta{flex:1;padding-bottom:4px;}
+.hole-badges{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
+.nine-badge-h{font-size:10px;font-weight:700;background:rgba(255,255,255,.1);color:rgba(255,255,255,.5);padding:2px 8px;border-radius:99px;letter-spacing:.5px;}
+.hole-par-lbl{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--gold2);}
+.start-badge{font-size:10px;font-weight:700;background:var(--g8);color:var(--gold2);padding:2px 8px;border-radius:99px;}
+.hole-yards{font-size:12px;color:rgba(255,255,255,.4);margin-bottom:5px;display:flex;gap:10px;}
+.yard-item{display:flex;align-items:center;gap:4px;}
+.yard-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.hole-progress{display:flex;align-items:center;gap:8px;}
+.progress-track{flex:1;height:4px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--g3);border-radius:99px;transition:width .4s;}
+.progress-text{font-size:11px;color:rgba(255,255,255,.35);white-space:nowrap;}
+
+.players{padding:12px;flex:1;display:flex;flex-direction:column;gap:9px;}
+.pcard{background:var(--white);border-radius:var(--r);border:2px solid var(--bdr);transition:border-color .15s;}
+.pcard.filled{border-color:var(--g4);}
+.pcard.active{border-color:var(--g3);box-shadow:0 0 0 3px rgba(90,158,112,.18);}
+.pcard-inner{display:flex;align-items:center;min-height:68px;}
+.pcard-avatar{width:44px;height:68px;display:flex;align-items:center;justify-content:center;border-radius:calc(var(--r) - 2px) 0 0 calc(var(--r) - 2px);flex-shrink:0;}
+.pcard.filled .pcard-avatar,.pcard.active .pcard-avatar{background:var(--g7);}
+.avatar-circle{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:'Barlow Condensed',sans-serif;}
+.avatar-empty{background:var(--bdr);color:var(--ink4);}
+.avatar-filled{background:rgba(255,255,255,.15);color:rgba(255,255,255,.7);}
+.pcard-info{flex:1;padding:0 10px;}
+.pcard-name-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.pcard-name{font-size:14px;font-weight:700;color:var(--ink);}
+.pcard.filled .pcard-name,.pcard.active .pcard-name{color:var(--g7);}
+.tee-badge{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:99px;font-size:10px;font-weight:700;}
+.tee-badge.white{background:#f0f0f0;border:1px solid #ccc;color:#555;}
+.tee-badge.red{background:#fdeaea;border:1px solid #e09090;color:#aa2222;}
+.tee-dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.tee-dot.white{background:#ffffff;border:1px solid #bbb;}
+.tee-dot.red{background:#cc3333;}
+.pcard-sub{font-size:11px;color:var(--ink3);margin-top:2px;display:flex;align-items:center;gap:6px;}
+.pcard-total{font-size:12px;color:var(--ink2);margin-top:3px;}
+.score-badge{font-size:10px;padding:1px 6px;border-radius:4px;font-weight:700;}
+.score-badge.e{background:#b5e6c9;color:#0c5028;}.score-badge.b{background:#d8f0e3;color:#1a6b35;}
+.score-badge.p{background:#f0f0f0;color:#555;}.score-badge.bo{background:#fff2dc;color:#8a4e00;}
+.score-badge.do{background:#ffe4e4;color:#991111;}.score-badge.tr{background:#f5cccc;color:#771010;}
+
+.stepper{display:flex;align-items:center;padding-right:4px;flex-shrink:0;}
+.step-btn{width:44px;height:60px;border:none;background:none;font-size:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:var(--r2);color:var(--ink3);touch-action:manipulation;}
+.step-btn:active{background:var(--bg);transform:scale(.9);}
+.step-val{width:50px;text-align:center;font-family:'Barlow Condensed',monospace;font-size:42px;font-weight:700;color:var(--ink);line-height:1;position:relative;cursor:text;}
+.step-val.eagle{color:#0c5028;}.step-val.birdie{color:#1a6b35;}.step-val.bogey{color:#8a4e00;}
+.step-val.double{color:#991111;}.step-val.triple{color:#771010;}.step-val.empty,.step-val.par{color:var(--ink);}
+.step-hidden{position:absolute;inset:0;opacity:0;width:100%;height:100%;}
+.swipe-hint{text-align:center;font-size:11px;color:var(--ink4);padding:4px 0 2px;}
+
+.bottom-bar{position:sticky;bottom:0;background:var(--white);border-top:1px solid var(--bdr);padding:10px 12px;z-index:50;}
+.score-summary{display:flex;gap:6px;margin-bottom:8px;overflow-x:auto;}
+.summary-cell{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r3);padding:7px 5px;text-align:center;cursor:pointer;min-width:0;flex:1;}
+.summary-cell.hl{background:var(--g8);border-color:var(--g6);}
+.summary-name{font-size:9px;font-weight:700;color:var(--ink3);margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.summary-cell.hl .summary-name{color:rgba(255,255,255,.4);}
+.summary-score{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--ink);line-height:1;}
+.summary-cell.hl .summary-score{color:var(--gold2);}
+.summary-total{font-size:9px;color:var(--ink4);margin-top:1px;}
+.summary-cell.hl .summary-total{color:rgba(255,255,255,.35);}
+.summary-legend{font-size:9px;color:var(--ink4);text-align:right;margin-top:-4px;margin-bottom:4px;}
+.btns{display:flex;gap:8px;}
+.btn-card{width:50px;height:50px;background:var(--bg2);border:1.5px solid var(--bdr);border-radius:var(--r2);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.btn-next{flex:1;height:50px;background:var(--g5);color:white;border:none;border-radius:var(--r2);font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+.btn-next.final{background:var(--gold);color:var(--g9);}
+
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;display:flex;align-items:flex-end;}
+.sheet{background:var(--white);border-radius:var(--r) var(--r) 0 0;width:100%;max-height:90svh;overflow-y:auto;}
+.sheet-handle{width:36px;height:4px;background:var(--bdr);border-radius:99px;margin:12px auto 14px;}
+.sheet-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:var(--g7);padding:0 20px 12px;border-bottom:1px solid var(--bdr);}
+.sc-wrap{overflow-x:auto;}
+.sc-table{width:100%;border-collapse:collapse;font-size:12px;}
+.sc-table th{background:var(--g8);color:rgba(255,255,255,.6);font-size:10px;font-weight:700;padding:7px 4px;text-align:center;white-space:nowrap;}
+.sc-table th.nl{text-align:left;padding-left:12px;}
+.sc-table td{padding:8px 4px;text-align:center;font-family:'DM Mono',monospace;border-bottom:1px solid #f0ece4;white-space:nowrap;}
+.sc-table td.nl{text-align:left;font-family:'Noto Sans JP',sans-serif;font-weight:600;font-size:11px;padding-left:12px;}
+.sc-table td.tot{font-weight:700;background:rgba(45,97,71,.07);}
+.sc-table td.net{font-weight:700;color:var(--g5);background:var(--gold3);}
+.sc-table td.eagle{background:#b5e6c9;color:#0c5028;}.sc-table td.birdie{background:#d8f0e3;color:#1a6b35;}
+.sc-table td.bogey{background:#fff2dc;color:#8a4e00;}.sc-table td.double{background:#ffe4e4;color:#991111;}
+.sc-table td.triple{background:#f5cccc;color:#771010;}
+.sheet-footer{padding:14px;display:flex;gap:8px;}
+.btn-close{flex:1;padding:12px;background:var(--bg2);border:1.5px solid var(--bdr);border-radius:var(--r2);font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+.btn-confirm{flex:1;padding:12px;background:var(--gold);color:var(--g9);border:none;border-radius:var(--r2);font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+
+.setup-screen{padding:20px 14px;display:flex;flex-direction:column;gap:18px;}
+.setup-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;color:var(--g7);}
+.setup-sub{font-size:13px;color:var(--ink3);margin-top:3px;line-height:1.6;}
+.setup-section{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:14px;}
+.setup-sec-title{font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+.tee-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bdr);}
+.tee-row:last-child{border-bottom:none;}
+.tee-avatar{width:30px;height:30px;border-radius:50%;background:var(--g6);color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.tee-name-block{flex:1;}
+.tee-name{font-size:14px;font-weight:700;}
+.tee-gender{font-size:11px;color:var(--ink3);margin-top:1px;}
+.tee-toggle{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;border:2px solid;cursor:pointer;font-family:'Noto Sans JP',sans-serif;background:none;}
+.tee-toggle.white{border-color:#ccc;background:#f8f8f8;}
+.tee-toggle.red{border-color:#e09090;background:#fdeaea;}
+.tee-toggle-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+.tee-toggle-dot.white{background:#fff;border:2px solid #bbb;}
+.tee-toggle-dot.red{background:#cc3333;}
+.tee-toggle-label{font-size:13px;font-weight:700;}
+.tee-toggle.white .tee-toggle-label{color:#444;}
+.tee-toggle.red .tee-toggle-label{color:#aa2222;}
+.hole-picker{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
+.hole-pick-btn{aspect-ratio:1;border-radius:var(--r3);border:2px solid var(--bdr);background:var(--white);font-family:'DM Mono',monospace;font-size:15px;font-weight:700;color:var(--ink2);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.hole-pick-btn.in-start{border-color:var(--g4);color:var(--g5);}
+.hole-pick-btn:active{transform:scale(.92);}
+.info-row{display:flex;align-items:center;gap:10px;background:var(--gold3);border:1px solid var(--gold);border-radius:var(--r2);padding:12px 14px;font-size:12px;color:var(--g7);line-height:1.6;}
+.confirm-screen{padding:20px 14px;}
+.confirm-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;color:var(--g7);margin-bottom:4px;}
+.confirm-sub{font-size:13px;color:var(--ink3);margin-bottom:16px;}
+.warn-box{background:#fff4e0;border:1px solid #e8a830;border-radius:var(--r2);padding:11px 14px;font-size:12px;color:#7a4800;margin-bottom:14px;line-height:1.6;}
+.confirm-btns{display:flex;gap:8px;}
+.btn-back2{padding:12px 16px;background:var(--bg2);border:1.5px solid var(--bdr);border-radius:var(--r2);font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+.btn-send{flex:1;padding:14px;background:var(--gold);color:var(--g9);border:none;border-radius:var(--r2);font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+.success-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60svh;padding:32px 24px;text-align:center;}
+.success-ico{font-size:68px;margin-bottom:18px;}
+.success-title{font-family:'Barlow Condensed',sans-serif;font-size:30px;font-weight:700;color:var(--g6);margin-bottom:8px;}
+.success-sub{font-size:14px;color:var(--ink3);line-height:1.8;}
+.primary-btn{width:100%;padding:14px;background:var(--g5);color:white;border:none;border-radius:var(--r2);font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+.primary-btn:active{opacity:.85;}
+.primary-btn.gold{background:var(--gold);color:var(--g9);}
+.primary-btn:disabled{opacity:.4;}
+.autosave{display:flex;align-items:center;gap:5px;font-size:11px;color:rgba(255,255,255,.35);}
+.autosave-dot{width:6px;height:6px;border-radius:50%;background:#4caf78;}
+.autosave-dot.pend{background:#d07820;animation:blink .7s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:var(--g8);color:white;padding:10px 20px;border-radius:var(--r2);font-size:13px;z-index:300;box-shadow:0 4px 20px rgba(0,0,0,.3);animation:fadeIn .2s;border:1px solid rgba(200,164,74,.3);}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--bdr);border-top-color:var(--g5);border-radius:50%;animation:spin .6s linear infinite;}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+
+// ══════════════════════════════════════════════════════════════
+// DJGA Tournament v8 — HC方式選択対応（新ペリア / 固定HC）
+// ══════════════════════════════════════════════════════════════
+
+// ── デフォルト値 ─────────────────────────────────────────────
+const DEFAULTS = {
+  courseName: "Watters Creek", location: "Plano, TX",
+  par:   [4,4,3,5,4,4,5,4,3, 4,3,4,4,5,4,3,4,5],
+  white: [392,298,126,454,386,370,471,376,151, 330,150,331,375,503,343,184,440,532],
+  red:   [306,192,95,351,308,279,337,292,121,  249,123,290,308,466,288,133,369,472],
+  hidden:[1,2,4,6,8,10,11,12,14,15,16,17], maxHC: 36,
+  hcMode: "newPeria", // "newPeria" or "fixed"
+};
+
+// ── GAS URL保存用（ブラウザ毎） ──────────────────────────────
+async function loadGasUrl() {
+  try { return localStorage.getItem("djga-gas-url") || ""; } catch { return ""; }
+}
+async function saveGasUrl(url) {
+  try { localStorage.setItem("djga-gas-url", url); } catch {}
+}
+
+// ── GAS API Layer ────────────────────────────────────────────
+const API = {
+  url: "",
+
+  async get(action, params = {}) {
+    const qs = new URLSearchParams({ action, ...params }).toString();
+    const res = await fetch(`${this.url}?${qs}`, { redirect: "follow" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  },
+
+  async post(body) {
+    const res = await fetch(this.url, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" }, // avoid CORS preflight
+      body: JSON.stringify(body),
+      redirect: "follow",
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  },
+
+  async ping() {
+    const r = await this.get("ping");
+    return r && r.ok;
+  },
+
+  async getConfig() {
+    const r = await this.get("getConfig");
+    return r?.ok ? r.config : null;
+  },
+  async saveConfig(config) {
+    return this.post({ action: "saveConfig", config });
+  },
+
+  async getGroups() {
+    const r = await this.get("getGroups");
+    return r?.ok ? r.groups : {};
+  },
+  async saveGroups(groups) {
+    return this.post({ action: "saveGroups", groups });
+  },
+
+  async getScores(groupNum) {
+    const r = await this.get("getScores", { group: groupNum });
+    return r?.ok ? r.data : null;
+  },
+  async saveScores(groupNum, members, scores, hcMode) {
+    return this.post({ action: "saveScores", groupNum, members, scores, hcMode });
+  },
+  async getAllScores() {
+    const r = await this.get("getAllScores");
+    return r?.ok ? r.data : [];
+  },
+};
+
+// ── 計算 ─────────────────────────────────────────────────────
+function calcNewPeriaHC(scores, par, hidden, maxHC) {
+  if (!hidden?.length) return 0;
+  const hs = hidden.reduce((s,h) => s + (parseInt(scores[h])||0), 0);
+  const ratio = 18 / hidden.length;
+  const cp = par.reduce((a,b)=>a+b,0);
+  let hc = (hs * ratio - cp) * 0.8;
+  return Math.max(0, Math.min(Math.round(hc*10)/10, maxHC));
+}
+function getHC(scores, par, hidden, maxHC, hcMode, fixedHC) {
+  if (hcMode === "fixed") return Math.min(Number(fixedHC) || 0, maxHC);
+  return calcNewPeriaHC(scores, par, hidden, maxHC);
+}
+function sumArr(a) { return a.reduce((s,v) => s+(parseInt(v)||0), 0); }
+function scClass(sc, p) {
+  if (!sc && sc!==0) return "empty"; const d=sc-p;
+  if(d<=-2)return"eagle";if(d===-1)return"birdie";if(d===1)return"bogey";if(d===2)return"double";if(d>=3)return"triple";return"par";
+}
+function scLabel(sc, p) {
+  if(!sc)return null;const d=sc-p;
+  if(d<=-2)return["e","イーグル"];if(d===-1)return["b","バーディ"];if(d===0)return["p","パー"];if(d===1)return["bo","ボギー"];if(d===2)return["do","ダブル"];return["tr","+"+d];
+}
+
+function QRImage({ data, size=200 }) {
+  return <img src={`https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(data)}&margin=8&color=163824&bgcolor=f2ede3`}
+    alt="QR" width={size} height={size} style={{borderRadius:12,border:"3px solid #e2ddd2"}} onError={e=>{e.target.style.display="none";}} />;
+}
+
+// ══════════════════════════════════════════════════════════════
+// CSS (same as v6 + additions for connection status)
+// ══════════════════════════════════════════════════════════════
+
+// ── Stepper ──────────────────────────────────────────────────
+function Stepper({ value, par, onChange, onFocus }) {
+  const inputRef = useRef(null); const timerRef = useRef(null);
+  const cls = scClass(value, par);
+  const inc = () => onChange(value===""?par:Math.min(15,parseInt(value)+1));
+  const dec = () => onChange(value===""?par:Math.max(1,parseInt(value)-1));
+  const start = (fn,e) => { e.preventDefault();e.stopPropagation();onFocus?.();fn();timerRef.current=setTimeout(()=>{timerRef.current=setInterval(fn,120);},500); };
+  const end = (e) => { e?.stopPropagation();clearTimeout(timerRef.current);clearInterval(timerRef.current); };
+  return (
+    <div className="stepper">
+      <button className="step-btn" onPointerDown={e=>start(dec,e)} onPointerUp={end} onPointerLeave={end}>{"\uff0d"}</button>
+      <div className={"step-val "+cls} onClick={e=>{e.stopPropagation();inputRef.current?.focus();}}>
+        <input ref={inputRef} type="number" min="1" max="15" value={value}
+          onChange={e=>{const n=parseInt(e.target.value);if(n>=1&&n<=15)onChange(n);}} onFocus={onFocus} className="step-hidden" inputMode="numeric" />
+        {value!==""?value:"\u2014"}
+      </div>
+      <button className="step-btn" onPointerDown={e=>start(inc,e)} onPointerUp={end} onPointerLeave={end}>{"\uff0b"}</button>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// MAIN APP
+// ══════════════════════════════════════════════════════════════
+function App() {
+  const [page, setPage]       = useState("home");
+  const [gasUrl, setGasUrl]   = useState("");
+  const [connected, setConn]  = useState(false);
+  const [config, setConfig]   = useState({ ...DEFAULTS });
+  const [groups, setGroups]   = useState({});
+  const [selGroup, setSel]    = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [toast, setToast]     = useState("");
+
+  const showToast = m => { setToast(m); setTimeout(()=>setToast(""),2500); };
+
+  // Init: load GAS URL → load data
+  useEffect(() => {
+    (async () => {
+      const url = await loadGasUrl();
+      if (url) {
+        setGasUrl(url);
+        API.url = url;
+        try {
+          const ok = await API.ping();
+          if (ok) {
+            setConn(true);
+            const [cfg, grp] = await Promise.all([API.getConfig(), API.getGroups()]);
+            if (cfg?.courseName) setConfig(cfg);
+            if (grp) setGroups(grp);
+          }
+        } catch {}
+      }
+      setLoading(false);
+    })();
+  }, []);
+
+  const connectGas = async (url) => {
+    API.url = url;
+    try {
+      const ok = await API.ping();
+      if (ok) {
+        setGasUrl(url); setConn(true);
+        await saveGasUrl(url);
+        const [cfg, grp] = await Promise.all([API.getConfig(), API.getGroups()]);
+        if (cfg?.courseName) setConfig(cfg);
+        if (grp) setGroups(grp);
+        showToast("✅ Spreadsheetに接続しました");
+        return true;
+      }
+    } catch {}
+    showToast("❌ 接続に失敗しました。URLを確認してください");
+    return false;
+  };
+
+  const coursePar = config.par?.reduce((a,b)=>a+b,0) || 72;
+
+  if (loading) return (<><div className="app" style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100svh"}}><div className="spinner" style={{width:28,height:28}} /></div></>);
+
+  return (
+    <>
+    <div className="app">
+      {toast && <div className="toast">{toast}</div>}
+      {page==="home" && <HomePage setPage={setPage} groups={groups} config={config} coursePar={coursePar} connected={connected} />}
+      {page==="config" && <ConfigPage config={config} setConfig={setConfig} gasUrl={gasUrl} connected={connected} connectGas={connectGas} showToast={showToast} setPage={setPage} />}
+      {page==="groups" && <GroupListPage groups={groups} setSel={setSel} setPage={setPage} />}
+      {page==="groupDetail" && <GroupDetailPage gn={selGroup} groups={groups} setGroups={setGroups} config={config} connected={connected} showToast={showToast} setPage={setPage} />}
+      {page==="scoreSelect" && <ScoreSelectPage groups={groups} setSel={setSel} setPage={setPage} />}
+      {page==="scoreInput" && <ScoreInputPage gn={selGroup} members={groups[selGroup]||[]} config={config} connected={connected} showToast={showToast} setPage={setPage} />}
+      {page==="ranking" && <RankingPage config={config} connected={connected} setPage={setPage} />}
+    </div></>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// HOME
+// ══════════════════════════════════════════════════════════════
+function HomePage({ setPage, groups, config, coursePar, connected }) {
+  const tg = Object.keys(groups).filter(k=>groups[k].length>0).length;
+  const tp = Object.values(groups).flat().length;
+  return (<>
+    <div className="topbar">
+      <div className="topbar-logo">DJGA</div><div className="topbar-sep" />
+      <div className="topbar-info"><strong>Tournament System</strong>{config.courseName} — {config.location}</div>
+      <div className="topbar-space" />
+      <div style={{display:"flex",alignItems:"center",gap:4}}>
+        <div className="conn-dot" style={{width:8,height:8,borderRadius:"50%",background:connected?"#4caf78":"#d07820"}} />
+        <span style={{fontSize:10,color:"rgba(255,255,255,.4)"}}>{connected?"接続中":"未接続"}</span>
+      </div>
+    </div>
+    <div className="home">
+      <div className="home-logo">
+        <div className="home-logo-icon">⛳</div>
+        <div className="home-logo-text">DJGA</div>
+        <div className="home-logo-sub">Dallas Japanese Golf Association</div>
+      </div>
+      {!connected && (
+        <div className="conn-status err" style={{cursor:"pointer"}} onClick={()=>setPage("config")}>
+          <div className="conn-dot" style={{background:"#c44"}} />
+          Google Spreadsheet未接続 — 大会設定からURLを設定 →
+        </div>
+      )}
+      {tg>0 && (
+        <div style={{background:"var(--gold3)",border:"1px solid var(--gold)",borderRadius:10,padding:"10px 14px",marginBottom:16,display:"flex",justifyContent:"space-around",fontSize:13}}>
+          <span><strong>{tg}</strong> グループ</span><span><strong>{tp}</strong> 名</span><span>Par {coursePar}</span>
+        </div>
+      )}
+      <div className="home-menu">
+        <button className="home-btn" onClick={()=>setPage("config")}>
+          <div className="home-btn-icon cfg">⚙</div>
+          <div><div className="home-btn-label">大会設定</div><div className="home-btn-desc">GAS接続 / {config.hcMode==="fixed"?"固定HC":"新ペリア"} / Par {coursePar}</div></div>
+          <div className="home-btn-arrow">›</div>
+        </button>
+        <button className="home-btn" onClick={()=>setPage("groups")}>
+          <div className="home-btn-icon grp">👥</div>
+          <div><div className="home-btn-label">グループ管理</div><div className="home-btn-desc">メンバー登録・QRコード発行</div></div>
+          <div className="home-btn-arrow">›</div>
+        </button>
+        <button className="home-btn" onClick={()=>setPage("scoreSelect")}>
+          <div className="home-btn-icon score">📝</div>
+          <div><div className="home-btn-label">スコア入力</div><div className="home-btn-desc">当日グループ毎にスコア入力</div></div>
+          <div className="home-btn-arrow">›</div>
+        </button>
+        <button className="home-btn" onClick={()=>setPage("ranking")}>
+          <div className="home-btn-icon rank">🏆</div>
+          <div><div className="home-btn-label">成績・順位表</div><div className="home-btn-desc">HC / Net / Gross ランキング</div></div>
+          <div className="home-btn-arrow">›</div>
+        </button>
+      </div>
+      <div style={{marginTop:24,padding:"12px 14px",background:"var(--bg2)",border:"1px solid var(--bdr)",borderRadius:10}}>
+        <p style={{fontSize:11,color:"var(--ink3)",lineHeight:1.7}}>
+          💡 <strong>運用フロー：</strong><br/>
+          ① 大会設定でGAS URL接続＋コース設定<br/>
+          ② グループ管理でメンバー登録・QR配布<br/>
+          ③ 当日：QRから各グループがスコア入力<br/>
+          ④ 成績表で全体順位を確認<br/>
+          📄 紙スコアカードも並行記入（バックアップ）
+        </p>
+      </div>
+    </div>
+  </>);
+}
+
+// ══════════════════════════════════════════════════════════════
+// CONFIG PAGE
+// ══════════════════════════════════════════════════════════════
+function ConfigPage({ config, setConfig, gasUrl, connected, connectGas, showToast, setPage }) {
+  const [c, setC] = useState({ ...config });
+  const [url, setUrl] = useState(gasUrl);
+  const [testing, setTesting] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const pt = c.par?.reduce((a,b)=>a+b,0)||0;
+
+  const setPar = (i,v) => { const p=[...c.par];p[i]=v;setC({...c,par:p}); };
+  const setW = (i,v) => { const w=[...c.white];w[i]=Number(v)||0;setC({...c,white:w}); };
+  const setR = (i,v) => { const r=[...c.red];r[i]=Number(v)||0;setC({...c,red:r}); };
+  const togH = i => {
+    const h=[...c.hidden],idx=h.indexOf(i);
+    if(idx>=0)h.splice(idx,1);else if(h.length<12)h.push(i);else{showToast("⚠️ 最大12ホール");return;}
+    h.sort((a,b)=>a-b);setC({...c,hidden:h});
+  };
+
+  const testConnect = async () => {
+    if(!url.trim()){showToast("⚠️ URLを入力してください");return;}
+    setTesting(true);
+    await connectGas(url.trim());
+    setTesting(false);
+  };
+
+  const save = async () => {
+    if(c.hcMode==="newPeria" && c.hidden.length!==12){showToast("⚠️ 隠しホールを12個選択");return;}
+    if(!c.courseName?.trim()){showToast("⚠️ コース名を入力");return;}
+    setSaving(true);
+    setConfig(c);
+    if(connected) {
+      try { await API.saveConfig(c); showToast("✅ Spreadsheetに保存しました"); }
+      catch { showToast("❌ 保存失敗。ネットワークを確認"); }
+    } else { showToast("⚠️ ローカルのみ保存（Spreadsheet未接続）"); }
+    setSaving(false);
+  };
+
+  return (<>
+    <div className="topbar">
+      <button className="topbar-back" onClick={()=>setPage("home")}>‹</button>
+      <div className="topbar-logo">DJGA</div><div className="topbar-sep" />
+      <div className="topbar-info"><strong>大会設定</strong></div>
+    </div>
+    <div className="cfg">
+      <div className="cfg-title">大会設定</div>
+      <div className="cfg-sub">Google Spreadsheet接続とコース情報を設定します。</div>
+
+      {/* GAS URL */}
+      <div className="cfg-card" style={{borderColor: connected ? "#a8d8b8" : "#f0b0b0"}}>
+        <div className="cfg-label">🔗 Google Apps Script URL</div>
+        <div className={`conn-status ${connected?"ok":"err"}`} style={{marginBottom:10}}>
+          <div className="conn-dot" style={{background:connected?"#4caf78":"#c44"}} />
+          {connected ? `接続済み — ${gasUrl.slice(0,50)}...` : "未接続 — URLを設定してください"}
+        </div>
+        <input className="cfg-input" value={url} onChange={e=>setUrl(e.target.value)}
+          placeholder="https://script.google.com/macros/s/.../exec"
+          style={{fontSize:12,fontFamily:"'DM Mono',monospace",marginBottom:8}} />
+        <button className="primary-btn" onClick={testConnect} disabled={testing}
+          style={{background:"var(--g5)",fontSize:13,padding:10}}>
+          {testing ? <><span className="spinner" style={{width:14,height:14,marginRight:6,verticalAlign:"middle"}} /> 接続テスト中...</> : "🔌 接続テスト"}
+        </button>
+        <p style={{fontSize:10,color:"var(--ink4)",marginTop:8,lineHeight:1.6}}>
+          GASのセットアップ手順は djga-gas-backend.js の先頭コメントを参照
+        </p>
+      </div>
+
+      {/* Course */}
+      <div className="cfg-card">
+        <div className="cfg-label">🏌️ コース名</div>
+        <input className="cfg-input" value={c.courseName||""} onChange={e=>setC({...c,courseName:e.target.value})} />
+      </div>
+      <div className="cfg-card">
+        <div className="cfg-label">📍 場所</div>
+        <input className="cfg-input" value={c.location||""} onChange={e=>setC({...c,location:e.target.value})} />
+      </div>
+
+      {/* HC Mode */}
+      <div className="cfg-card" style={{borderColor: c.hcMode==="newPeria"?"var(--g4)":"var(--gold)"}}>
+        <div className="cfg-label">🎯 HC方式</div>
+        <div style={{display:"flex",gap:8,marginBottom:10}}>
+          {[{k:"newPeria",l:"新ペリア",d:"隠しHから自動計算"},{k:"fixed",l:"固定HC",d:"各選手に事前設定"}].map(opt=>(
+            <button key={opt.k} onClick={()=>setC({...c,hcMode:opt.k})} style={{
+              flex:1,padding:"12px 8px",borderRadius:10,cursor:"pointer",textAlign:"center",fontFamily:"inherit",
+              border: c.hcMode===opt.k ? "2.5px solid var(--g4)" : "2px solid var(--bdr)",
+              background: c.hcMode===opt.k ? "var(--g7)" : "var(--white)",
+              color: c.hcMode===opt.k ? "white" : "var(--ink2)",
+            }}>
+              <div style={{fontSize:14,fontWeight:700,marginBottom:2}}>{opt.l}</div>
+              <div style={{fontSize:10,opacity:.7}}>{opt.d}</div>
+            </button>
+          ))}
+        </div>
+        {c.hcMode==="newPeria" && <p style={{fontSize:11,color:"var(--ink4)",lineHeight:1.5}}>📐 HC = (隠しH合計 × {c.hidden.length>0?(18/c.hidden.length).toFixed(1):"?"} − Par) × 0.8</p>}
+        {c.hcMode==="fixed" && <p style={{fontSize:11,color:"var(--ink4)",lineHeight:1.5}}>👤 グループ管理で各メンバーのHCを入力してください</p>}
+      </div>
+
+      <div className="cfg-card">
+        <div className="cfg-label">🔒 HC上限</div>
+        <div className="cfg-row">
+          <input type="number" className="cfg-sm" value={c.maxHC} onChange={e=>setC({...c,maxHC:Math.max(0,Math.min(54,Number(e.target.value)||0))})} />
+          <span style={{fontSize:13,color:"var(--ink3)"}}>（通常 36）</span>
+        </div>
+      </div>
+
+      {/* Par */}
+      <div className="cfg-card">
+        <div className="cfg-label"><span>⛳ パー</span><span style={{marginLeft:"auto",color:"var(--g5)",fontWeight:700,fontSize:13}}>合計 {pt}</span></div>
+        {["OUT（1〜9）","IN（10〜18）"].map((lbl,hi)=>(
+          <div key={hi}>
+            <div className="nine-label">{lbl}</div>
+            <div className="par-grid">{Array.from({length:9},(_,i)=>{const idx=hi*9+i;return(
+              <div key={idx} className="par-cell"><div className="par-cell-num">H{idx+1}</div>
+                <select value={c.par[idx]} onChange={e=>setPar(idx,Number(e.target.value))}>
+                  {[3,4,5].map(v=><option key={v} value={v}>{v}</option>)}
+                </select></div>
+            );})}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Yards */}
+      <div className="cfg-card">
+        <div className="cfg-label">📏 ヤード（任意）</div>
+        {["OUT（1〜9）","IN（10〜18）"].map((lbl,hi)=>(
+          <div key={hi}>
+            <div className="nine-label">{lbl}</div>
+            <div className="par-grid">{Array.from({length:9},(_,i)=>{const idx=hi*9+i;return(
+              <div key={idx} className="par-cell">
+                <div className="par-cell-num" style={{display:"flex",gap:2,alignItems:"center"}}>
+                  <span style={{width:5,height:5,borderRadius:"50%",background:"#fff",border:"1px solid #bbb",display:"inline-block"}} />W
+                </div>
+                <input type="number" value={c.white[idx]||""} onChange={e=>setW(idx,e.target.value)} placeholder="—" />
+              </div>
+            );})}</div>
+            <div style={{height:2}} />
+            <div className="par-grid">{Array.from({length:9},(_,i)=>{const idx=hi*9+i;return(
+              <div key={idx} className="par-cell">
+                <div className="par-cell-num" style={{display:"flex",gap:2,alignItems:"center"}}>
+                  <span style={{width:5,height:5,borderRadius:"50%",background:"#c33",display:"inline-block"}} />R
+                </div>
+                <input type="number" value={c.red[idx]||""} onChange={e=>setR(idx,e.target.value)} placeholder="—" />
+              </div>
+            );})}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Hidden (新ペリア only) */}
+      {c.hcMode==="newPeria" && (
+      <div className="cfg-card">
+        <div className="cfg-label"><span>🎲 隠しホール</span>
+          <span style={{marginLeft:"auto",fontWeight:700,fontSize:13,color:c.hidden.length===12?"var(--g5)":"#c44"}}>{c.hidden.length}/12</span>
+        </div>
+        <p style={{fontSize:11,color:"var(--ink4)",marginBottom:10}}>タップで12ホール選択（選手には非公開）</p>
+        {["OUT（1〜9）","IN（10〜18）"].map((lbl,hi)=>(
+          <div key={hi}>
+            <div className="nine-label">{lbl}</div>
+            <div className="hidden-grid">{Array.from({length:9},(_,i)=>{const idx=hi*9+i;return(
+              <button key={idx} className={"hidden-btn"+(c.hidden.includes(idx)?" on":"")} onClick={()=>togH(idx)}>
+                {idx+1}<span className="hidden-par">P{c.par[idx]}</span>
+              </button>
+            );})}</div>
+          </div>
+        ))}
+      </div>
+      )}
+
+      <div className="info-row" style={{marginBottom:12}}>
+        <span style={{fontSize:18}}>📋</span>
+        <div style={{fontSize:12,lineHeight:1.6}}>
+          <strong>{c.courseName}</strong>（{c.location}）<br/>
+          Par {pt} / HC方式: {c.hcMode==="fixed"?"固定HC":"新ペリア"}{c.hcMode==="newPeria"?` / 隠し${c.hidden.length}H`:""} / HC上限 {c.maxHC}
+        </div>
+      </div>
+
+      <button className="primary-btn gold" onClick={save} disabled={saving||(c.hcMode==="newPeria"&&c.hidden.length!==12)}>
+        {saving?"保存中...":"💾 設定を保存"}
+      </button>
+    </div>
+  </>);
+}
+
+// ══════════════════════════════════════════════════════════════
+// GROUP LIST
+// ══════════════════════════════════════════════════════════════
+function GroupListPage({ groups, setSel, setPage }) {
+  return (<>
+    <div className="topbar"><button className="topbar-back" onClick={()=>setPage("home")}>‹</button>
+      <div className="topbar-logo">DJGA</div><div className="topbar-sep" /><div className="topbar-info"><strong>グループ管理</strong></div></div>
+    <div className="gm">
+      <div className="gm-title">グループ一覧</div>
+      <div className="gm-sub">番号をタップしてメンバー登録・QRコード発行。</div>
+      <div className="gm-grid">{Array.from({length:20},(_,i)=>{const n=String(i+1),m=groups[n]||[];return(
+        <button key={n} className={"gm-num"+(m.length>0?" has":"")} onClick={()=>{setSel(n);setPage("groupDetail");}}>
+          {n}{m.length>0&&<span className="gm-count">{m.length}名</span>}
+        </button>);})}</div>
+    </div>
+  </>);
+}
+
+// ══════════════════════════════════════════════════════════════
+// GROUP DETAIL + QR
+// ══════════════════════════════════════════════════════════════
+function GroupDetailPage({ gn, groups, setGroups, config, connected, showToast, setPage }) {
+  const members = groups[gn]||[];
+  const [nn, setNn] = useState(""); const [nt, setNt] = useState("white");
+  const [copied, setCopied] = useState(false); const [saving, setSaving] = useState(false);
+
+  const saveToGAS = async (updated) => {
+    setGroups(updated);
+    if (connected) {
+      setSaving(true);
+      try { await API.saveGroups(updated); } catch { showToast("⚠️ Spreadsheet保存失敗"); }
+      setSaving(false);
+    }
+  };
+
+  const add = () => {
+    const name=nn.trim(); if(!name)return; if(members.length>=6){showToast("⚠️ 最大6名");return;}
+    saveToGAS({...groups,[gn]:[...members,{name,tee:nt,fixedHC:""}]});
+    setNn("");showToast(`✅ ${name} を追加`);
+  };
+  const del = idx => saveToGAS({...groups,[gn]:members.filter((_,i)=>i!==idx)});
+  const togTee = idx => saveToGAS({...groups,[gn]:members.map((m,i)=>i===idx?{...m,tee:m.tee==="white"?"red":"white"}:m)});
+  const setFixedHC = (idx, val) => {
+    const v = val==="" ? "" : Math.max(0, Math.min(54, Number(val)||0));
+    saveToGAS({...groups,[gn]:members.map((m,i)=>i===idx?{...m,fixedHC:v}:m)});
+  };
+
+  const base = window.location.href.split("?")[0].split("#")[0];
+  const qrData = `${base}?group=${gn}`;
+  const copyLink = () => { navigator.clipboard.writeText(qrData).catch(()=>{}); setCopied(true);setTimeout(()=>setCopied(false),2000);showToast("📋 コピー"); };
+
+  return (<>
+    <div className="topbar"><button className="topbar-back" onClick={()=>setPage("groups")}>‹</button>
+      <div className="topbar-logo">DJGA</div><div className="topbar-sep" />
+      <div className="topbar-info"><strong>{gn}組</strong>{config.courseName}</div>
+      <div className="topbar-space" />
+      {saving && <span className="spinner" style={{width:14,height:14}} />}
+    </div>
+    <div className="gd">
+      <div className="gd-header">
+        <div className="gd-num">{gn}</div>
+        <div><div className="gd-title">{gn}組</div><div className="gd-subtitle">{members.length}名登録</div></div>
+      </div>
+      <div className="gd-section">
+        <div className="gd-sec-title"><span>👤</span> メンバー <span style={{marginLeft:"auto",fontSize:11,fontWeight:400,color:"var(--ink4)"}}>{members.length}/6</span></div>
+        {members.length===0&&<p style={{fontSize:13,color:"var(--ink4)",textAlign:"center",padding:"16px 0"}}>メンバーを追加してください</p>}
+        {members.map((m,i)=>(
+          <div key={i} className="member-row" style={{flexWrap: config.hcMode==="fixed"?"wrap":"nowrap"}}>
+            <div className="member-avatar">{m.name[0]}</div>
+            <div className="member-name">{m.name}</div>
+            <button className={"member-tee "+m.tee} onClick={()=>togTee(i)}>
+              <span className={"tee-dot "+m.tee} style={{display:"inline-block",width:8,height:8,borderRadius:"50%",marginRight:4}} />{m.tee==="white"?"White":"Red"}
+            </button>
+            {config.hcMode==="fixed" && (
+              <div style={{display:"flex",alignItems:"center",gap:4}}>
+                <span style={{fontSize:11,color:"var(--ink3)",fontWeight:700}}>HC</span>
+                <input type="number" inputMode="numeric" value={m.fixedHC===""||m.fixedHC===undefined?"":m.fixedHC}
+                  onChange={e=>setFixedHC(i,e.target.value)}
+                  style={{width:48,padding:"4px 6px",border:"2px solid var(--bdr)",borderRadius:6,fontSize:14,fontWeight:700,textAlign:"center",fontFamily:"'DM Mono',monospace",background:"var(--white)",outline:"none"}}
+                  onFocus={e=>e.target.select()} placeholder="—" />
+              </div>
+            )}
+            <button className="member-del" onClick={()=>del(i)}>×</button>
+          </div>
+        ))}
+        <div className="add-row">
+          <input className="add-input" value={nn} onChange={e=>setNn(e.target.value)} placeholder="選手名" onKeyDown={e=>e.key==="Enter"&&add()} />
+          <button className={"tee-toggle "+nt} onClick={()=>setNt(nt==="white"?"red":"white")} style={{flexShrink:0,padding:"6px 10px"}}>
+            <span className={"tee-toggle-dot "+nt} /><span className="tee-toggle-label">{nt==="white"?"W":"R"}</span>
+          </button>
+          <button className="add-btn" onClick={add} disabled={!nn.trim()}>追加</button>
+        </div>
+      </div>
+      {members.length>0&&(<>
+        <div className="qr-section">
+          <div className="qr-title">📱 {gn}組 スコア入力リンク</div>
+          <div className="qr-sub">QRコードをスコア入力係にスキャンしてもらってください</div>
+          <div className="qr-img-wrap"><QRImage data={qrData} size={200} /></div>
+          <div style={{background:"var(--g8)",color:"white",borderRadius:8,padding:"10px 14px",marginBottom:12,fontSize:13,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+            🏌️ {gn}組 — {members.map(m=>m.name).join("、")}
+          </div>
+          <div className="qr-link-box">
+            <div className="qr-link-text">{qrData}</div>
+            <button className={"qr-copy-btn"+(copied?" copied":"")} onClick={copyLink}>{copied?"✓":"コピー"}</button>
+          </div>
+          <div className="qr-hint">📌 メンバー情報はSpreadsheetから自動取得されます。</div>
+        </div>
+        <button className="primary-btn gold" onClick={()=>setPage("scoreInput")}>📝 スコア入力を開始 →</button>
+      </>)}
+    </div>
+  </>);
+}
+
+// ══════════════════════════════════════════════════════════════
+// SCORE SELECT
+// ══════════════════════════════════════════════════════════════
+function ScoreSelectPage({ groups, setSel, setPage }) {
+  const active = Object.entries(groups).filter(([_,m])=>m.length>0).sort((a,b)=>Number(a[0])-Number(b[0]));
+  return (<>
+    <div className="topbar"><button className="topbar-back" onClick={()=>setPage("home")}>‹</button>
+      <div className="topbar-logo">DJGA</div><div className="topbar-sep" /><div className="topbar-info"><strong>スコア入力</strong></div></div>
+    <div className="gm">
+      <div className="gm-title">スコア入力</div><div className="gm-sub">グループを選んでください。</div>
+      {active.length===0&&<p style={{textAlign:"center",padding:"40px 0",color:"var(--ink4)"}}>グループが登録されていません</p>}
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        {active.map(([n,m])=>(
+          <button key={n} className="home-btn" onClick={()=>{setSel(n);setPage("scoreInput");}}>
+            <div className="home-btn-icon grp" style={{fontSize:18,fontFamily:"'Barlow Condensed'",fontWeight:700}}>{n}</div>
+            <div><div className="home-btn-label">{n}組</div><div className="home-btn-desc">{m.map(x=>x.name).join("、")}</div></div>
+            <div className="home-btn-arrow">›</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  </>);
+}
+
+// ══════════════════════════════════════════════════════════════
+// RANKING PAGE
+// ══════════════════════════════════════════════════════════════
+function RankingPage({ config, connected, setPage }) {
+  const [data, setData] = useState(null); const [loading, setLoading] = useState(true);
+  const [sort, setSort] = useState("net");
+
+  useEffect(() => {
+    (async () => {
+      if (connected) {
+        try { const d = await API.getAllScores(); setData(d); } catch { setData([]); }
+      } else { setData([]); }
+      setLoading(false);
+    })();
+  }, [connected]);
+
+  const sorted = (data||[]).filter(r=>r.gross>0).sort((a,b) => sort==="net"?(a.net-b.net):(a.gross-b.gross));
+  const medals = ["🥇","🥈","🥉"];
+  const cp = config.par?.reduce((a,b)=>a+b,0)||72;
+
+  return (<>
+    <div className="topbar"><button className="topbar-back" onClick={()=>setPage("home")}>‹</button>
+      <div className="topbar-logo">DJGA</div><div className="topbar-sep" /><div className="topbar-info"><strong>成績・順位表</strong></div></div>
+    <div className="gm">
+      <div className="gm-title">🏆 成績・順位表</div>
+      <div style={{display:"flex",gap:6,marginBottom:12,fontSize:12,color:"var(--ink3)",flexWrap:"wrap"}}>
+        <span>{config.hcMode==="fixed"?"固定HC方式":"新ペリア方式"}</span><span>Par {cp}</span><span>HC上限 {config.maxHC}</span>
+      </div>
+
+      <div style={{display:"flex",gap:8,marginBottom:16}}>
+        {[{k:"net",l:"Net順位"},{k:"gross",l:"Gross順位"}].map(s=>(
+          <button key={s.k} onClick={()=>setSort(s.k)} style={{
+            flex:1,padding:10,borderRadius:8,border:sort===s.k?"2px solid var(--g4)":"2px solid var(--bdr)",
+            background:sort===s.k?"var(--g7)":"var(--white)",color:sort===s.k?"white":"var(--ink3)",
+            fontWeight:sort===s.k?700:400,fontSize:14,cursor:"pointer",fontFamily:"inherit"
+          }}>{s.l}</button>
+        ))}
+      </div>
+
+      {loading && <div style={{textAlign:"center",padding:40}}><span className="spinner" /></div>}
+      {!loading && !connected && <div className="conn-status err">Spreadsheet未接続のためデータを取得できません</div>}
+      {!loading && sorted.length===0 && connected && <p style={{textAlign:"center",color:"var(--ink4)",padding:40}}>スコアデータがありません</p>}
+
+      {sorted.map((r,i)=>{
+        const rank=i+1,top3=rank<=3;
+        return (
+          <div key={`${r.group}-${r.name}`} style={{
+            background:top3?"var(--gold3)":"var(--white)",border:top3?"2px solid var(--gold)":"1.5px solid var(--bdr)",
+            borderRadius:12,padding:12,marginBottom:8,display:"flex",alignItems:"center",gap:10
+          }}>
+            <div style={{width:36,height:36,borderRadius:18,display:"flex",alignItems:"center",justifyContent:"center",
+              background:top3?"var(--gold)":"var(--bg)",fontSize:top3?20:15,fontWeight:700,
+              color:top3?"var(--g9)":"var(--ink3)",flexShrink:0}}>
+              {top3?medals[rank-1]:rank}
+            </div>
+            <div style={{flex:1}}>
+              <div style={{fontSize:15,fontWeight:700,color:"var(--ink)"}}>{r.name}</div>
+              <div style={{fontSize:11,color:"var(--ink4)"}}>{r.group}組</div>
+            </div>
+            <div style={{textAlign:"right",display:"flex",gap:14,alignItems:"baseline"}}>
+              <div><div style={{fontSize:9,color:"var(--ink4)"}}>NET</div><div style={{fontSize:sort==="net"?22:16,fontWeight:700,color:sort==="net"?"var(--g7)":"var(--ink)"}}>{r.net}</div></div>
+              <div><div style={{fontSize:9,color:"var(--ink4)"}}>GR</div><div style={{fontSize:sort==="gross"?22:16,fontWeight:700,color:sort==="gross"?"var(--g7)":"var(--ink)"}}>{r.gross}</div></div>
+              <div><div style={{fontSize:9,color:"var(--ink4)"}}>HC</div><div style={{fontSize:14,fontWeight:600,color:"var(--g3)"}}>{r.hc}</div></div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </>);
+}
+
+// ══════════════════════════════════════════════════════════════
+// SCORE INPUT (v4 integrated, config-driven, GAS save)
+// ══════════════════════════════════════════════════════════════
+function ScoreInputPage({ gn, members, config, connected, showToast, setPage }) {
+  const [phase, setPhase] = useState("setup");
+  const [lm, setLm] = useState(members);
+  const [sh, setSh] = useState(0);
+  const [hole, setHole] = useState(0);
+  const [scores, setScores] = useState(()=>members.map(()=>Array(18).fill("")));
+  const [ap, setAp] = useState(0);
+  const [ss, setSs] = useState("ok");
+  const [showCard, setSC] = useState(false);
+  const P=config.par, W=config.white, R=config.red;
+
+  const tc=lm.length*18, fc=scores.flat().filter(v=>v!=="").length, allF=fc===tc;
+  const par=P[hole], nine=hole<9?"OUT":"IN";
+
+  const next=()=>{const n=(hole+1)%18;if(allF||n===sh)setSC(true);else setHole(n);};
+  const prev=()=>setHole((hole-1+18)%18);
+  const isLast=()=>(hole+1)%18===sh;
+  const setScore=(pi,hi,val)=>{setScores(p=>{const n=p.map(r=>[...r]);n[pi][hi]=val;return n;});setSs("pending");};
+
+  const touchX=useRef(null);
+  const onTS=e=>{touchX.current=e.touches[0].clientX;};
+  const onTE=e=>{if(touchX.current===null)return;const dx=e.changedTouches[0].clientX-touchX.current;if(dx<-60)next();else if(dx>60)prev();touchX.current=null;};
+
+  const totals=scores.map((s,pi)=>{
+    const out=sumArr(s.slice(0,9)),inn=sumArr(s.slice(9)),gross=out+inn;
+    const hc=getHC(s,P,config.hidden,config.maxHC,config.hcMode,lm[pi]?.fixedHC);
+    return{out,in:inn,gross,hc,net:gross>0?Math.round((gross-hc)*10)/10:0};
+  });
+  const haf=h=>scores.every(s=>s[h]!=="");
+  const hsf=h=>scores.some(s=>s[h]!=="");
+  const btnLabel=allF?"全ホール入力完了 → 確認":isLast()?"最終ホール → カード":`次 → H${(hole+1)%18+1}`;
+
+  // Setup
+  if(phase==="setup"){
+    const togTee=pi=>setLm(p=>p.map((m,i)=>i===pi?{...m,tee:m.tee==="white"?"red":"white"}:m));
+    const pick=i=>{setSh(i);setHole(i);setPhase("input");};
+    return(<>
+      <div className="topbar"><button className="topbar-back" onClick={()=>setPage("home")}>‹</button>
+        <div className="topbar-logo">DJGA</div><div className="topbar-sep" />
+        <div className="topbar-info"><strong>{gn}組 — スタート設定</strong>{config.courseName}</div></div>
+      <div className="setup-screen">
+        <div className="setup-section"><div className="setup-sec-title">ティー設定</div>
+          {lm.map((m,pi)=>(<div key={pi} className="tee-row"><div className="tee-avatar">{m.name[0]}</div>
+            <div className="tee-name-block"><div className="tee-name">{m.name}</div><div className="tee-gender">{m.tee==="white"?"White":"Red"} Tee</div></div>
+            <button className={"tee-toggle "+m.tee} onClick={()=>togTee(pi)}><span className={"tee-toggle-dot "+m.tee} /><span className="tee-toggle-label">{m.tee==="white"?"White":"Red"}</span></button>
+          </div>))}
+        </div>
+        <div><div className="setup-title">スタートホール</div><div className="setup-sub">ショットガンは割り当てホールを、通常は「1」。</div></div>
+        <div className="setup-section"><div className="setup-sec-title">ホール番号</div>
+          <div className="hole-picker">{Array.from({length:18},(_,i)=>(<button key={i} className={"hole-pick-btn"+(i>=9?" in-start":"")} onClick={()=>pick(i)}>{i+1}</button>))}</div>
+        </div>
+      </div>
+    </>);
+  }
+
+  // Done
+  if(phase==="done")return(<>
+    <div className="topbar"><div className="topbar-logo">DJGA</div><div className="topbar-sep" /><div className="topbar-info"><strong>{gn}組 — 完了</strong></div></div>
+    <div className="success-screen"><div className="success-ico">🏆</div><div className="success-title">送信完了！</div>
+      <div className="success-sub">スコアがSpreadsheetに保存されました。<br/>順位表は幹事が公開後にご確認ください。</div>
+      <button className="primary-btn" style={{marginTop:24,maxWidth:280}} onClick={()=>setPage("home")}>ホームに戻る</button>
+    </div></>);
+
+  // Confirm
+  if(phase==="confirm")return(<>
+    <div className="topbar"><button className="topbar-back" onClick={()=>setPhase("input")}>‹</button><div className="topbar-sep" />
+      <div className="topbar-info"><strong>{gn}組 — 確認</strong></div></div>
+    <div className="confirm-screen">
+      <div className="confirm-title">最終確認</div><div className="confirm-sub">紙のカードと照合してください</div>
+      <div className="sc-wrap" style={{marginBottom:16,borderRadius:10,border:"1px solid var(--bdr)"}}>
+        <table className="sc-table"><thead><tr><th className="nl">名前</th>
+          {Array.from({length:9},(_,i)=><th key={i}>{i+1}</th>)}<th>OUT</th>
+          {Array.from({length:9},(_,i)=><th key={i+9}>{i+10}</th>)}<th>IN</th>
+          <th>GR</th><th>HC</th><th>NET</th></tr></thead><tbody>
+          {lm.map((m,pi)=>{const s=scores[pi],t=totals[pi];return(<tr key={pi}><td className="nl">{m.name.split(" ")[0]}</td>
+            {s.slice(0,9).map((v,i)=><td key={i} className={v?scClass(v,P[i]):""}>{v||"·"}</td>)}<td className="tot">{t.out||"—"}</td>
+            {s.slice(9).map((v,i)=><td key={i+9} className={v?scClass(v,P[i+9]):""}>{v||"·"}</td>)}<td className="tot">{t.in||"—"}</td>
+            <td className="tot">{t.gross||"—"}</td><td>{t.hc||"—"}</td><td className="net">{t.net||"—"}</td></tr>);})}
+        </tbody></table></div>
+      <div className="warn-box">⚠️ 送信後の修正は幹事にお願いしてください（Spreadsheetで直接編集可）。</div>
+      <div className="confirm-btns">
+        <button className="btn-back2" onClick={()=>setPhase("input")}>← 修正</button>
+        <button className="btn-send" onClick={async()=>{
+          if(connected){try{await API.saveScores(gn,lm,scores,config.hcMode);showToast("✅ Spreadsheetに送信完了！");}catch{showToast("❌ 送信失敗");return;}}
+          else showToast("⚠️ 未接続のため送信できません");
+          setPhase("done");
+        }}>送信する ✓</button>
+      </div>
+    </div></>);
+
+  // Input
+  return(<>
+    <div className="topbar">
+      <button className="topbar-back" onClick={()=>{if(confirm("離れますか？"))setPage("home");}}>‹</button>
+      <div className="topbar-logo">DJGA</div><div className="topbar-sep" />
+      <div className="topbar-info"><strong>{gn}組</strong>{config.courseName}</div>
+      <div className="topbar-space" />
+      <div className="autosave"><div className={"autosave-dot"+(ss==="pending"?" pend":"")} />{ss==="pending"?"入力中":"OK"}</div>
+    </div>
+    <div onTouchStart={onTS} onTouchEnd={onTE}>
+      <div className="hole-header">
+        <div className="hole-nav">
+          <button className="hole-nav-btn" onClick={prev}>‹</button>
+          <div className="hole-dots">{Array.from({length:18},(_,i)=>{
+            const cls=i===hole?"active":haf(i)?"done":hsf(i)?"partial":"empty";
+            return <button key={i} className={"hole-dot "+cls+(i===sh?" startmark":"")} onClick={()=>setHole(i)}>{i+1}</button>;
+          })}</div>
+          <button className="hole-nav-btn" onClick={next}>›</button>
+        </div>
+        <div className="hole-main">
+          <div className="hole-num">{hole+1}</div>
+          <div className="hole-meta">
+            <div className="hole-badges">
+              <span className="nine-badge-h">{nine}</span>
+              <span className="hole-par-lbl">PAR {par}</span>
+              {hole===sh&&<span className="start-badge">START</span>}
+            </div>
+            <div className="hole-yards">
+              <span className="yard-item"><span className="yard-dot" style={{background:"#fff",border:"1px solid #bbb"}} />{W[hole]||"—"}yd</span>
+              <span className="yard-item"><span className="yard-dot" style={{background:"#c33"}} />{R[hole]||"—"}yd</span>
+            </div>
+            <div className="hole-progress"><div className="progress-track"><div className="progress-fill" style={{width:`${(fc/tc)*100}%`}} /></div><span className="progress-text">{fc}/{tc}</span></div>
+          </div>
+        </div>
+      </div>
+      <div className="players">
+        {lm.map((m,pi)=>{const val=scores[pi][hole],fl=val!=="",act=pi===ap,tk=m.tee||"white",yd=tk==="red"?R[hole]:W[hole],rel=fl?scLabel(val,par):null;return(
+          <div key={pi} className={"pcard"+(fl?" filled":"")+(act?" active":"")} onClick={()=>setAp(pi)}><div className="pcard-inner">
+            <div className="pcard-avatar"><div className={"avatar-circle "+(fl?"avatar-filled":"avatar-empty")}>{m.name[0]}</div></div>
+            <div className="pcard-info"><div className="pcard-name-row"><span className="pcard-name">{m.name}</span>
+              <span className={"tee-badge "+tk}><span className={"tee-dot "+tk} />{tk==="white"?"White":"Red"}</span></div>
+              <div className="pcard-sub">{pi===0&&<span>★</span>}<span>{yd||"—"}yd</span>{!fl&&<span>未入力</span>}</div>
+              {fl&&<div className="pcard-total">計 {sumArr(scores[pi])}{rel&&<span className={"score-badge "+rel[0]} style={{marginLeft:5}}>{rel[1]}</span>}</div>}
+            </div>
+            <Stepper value={val} par={par} onChange={v=>{setScore(pi,hole,v);setAp(pi);}} onFocus={()=>setAp(pi)} />
+          </div></div>);})}
+        <div className="swipe-hint">‹ スワイプでホール移動 ›</div>
+      </div>
+      <div className="bottom-bar">
+        <div className="score-summary">{lm.map((m,pi)=>{const hv=scores[pi][hole],g=totals[pi].gross;return(
+          <div key={pi} className={"summary-cell"+(pi===ap?" hl":"")} onClick={()=>setAp(pi)}>
+            <div className="summary-name">{m.name.split(" ")[0]}</div><div className="summary-score">{hv||"—"}</div><div className="summary-total">計 {g||"—"}</div>
+          </div>);})}</div>
+        <div className="summary-legend">H{hole+1}スコア / 合計</div>
+        <div className="btns">
+          <button className="btn-card" onClick={()=>setSC(true)}>📋</button>
+          <button className={"btn-next"+(allF?" final":"")} onClick={()=>{if(allF)setSC(true);else next();}}>{btnLabel}</button>
+        </div>
+      </div>
+      {showCard&&(
+        <div className="sheet-overlay" onClick={()=>setSC(false)}><div className="sheet" onClick={e=>e.stopPropagation()}>
+          <div className="sheet-handle" /><div className="sheet-title">📋 {gn}組</div>
+          <div className="sc-wrap"><table className="sc-table"><thead><tr><th className="nl">名前</th>
+            {Array.from({length:9},(_,i)=><th key={i}>{i+1}</th>)}<th>OUT</th>
+            {Array.from({length:9},(_,i)=><th key={i+9}>{i+10}</th>)}<th>IN</th><th>GR</th><th>HC</th><th>NET</th></tr></thead><tbody>
+            {lm.map((m,pi)=>{const s=scores[pi],t=totals[pi];return(<tr key={pi}><td className="nl">{m.name.split(" ")[0]}</td>
+              {s.slice(0,9).map((v,i)=><td key={i} className={v?scClass(v,P[i]):""}>{v||"·"}</td>)}<td className="tot">{t.out||"—"}</td>
+              {s.slice(9).map((v,i)=><td key={i+9} className={v?scClass(v,P[i+9]):""}>{v||"·"}</td>)}<td className="tot">{t.in||"—"}</td>
+              <td className="tot">{t.gross||"—"}</td><td>{t.hc||"—"}</td><td className="net">{t.net||"—"}</td></tr>);})}
+          </tbody></table></div>
+          <div className="sheet-footer"><button className="btn-close" onClick={()=>setSC(false)}>閉じる</button>
+            {allF&&<button className="btn-confirm" onClick={()=>{setSC(false);setPhase("confirm");}}>確認・送信 →</button>}
+          </div>
+        </div></div>
+      )}
+    </div>
+  </>);
+}
+
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
