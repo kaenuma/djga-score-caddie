@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DJGA Score Caddie — スコア入力</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛳</text></svg>">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Barlow+Condensed:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --g9:#081a10;--g8:#0f2a1a;--g7:#163824;--g6:#1d4a2e;--g5:#275e3c;--g4:#3d7a52;--g3:#5a9e70;
+  --gold:#c8a44a;--gold2:#e4c56e;--gold3:#f6e9c0;
+  --ink:#1c1c1c;--ink2:#444;--ink3:#777;--ink4:#aaa;
+  --bg:#f2ede3;--bg2:#faf7f1;--white:#fdfdfc;
+  --bdr:#e2ddd2;--r:14px;--r2:10px;--r3:7px;
+}
+html{font-size:16px;-webkit-text-size-adjust:100%;}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;}
+.app{min-height:100svh;display:flex;flex-direction:column;max-width:520px;margin:0 auto;}
+.topbar{background:var(--g9);padding:0 12px;display:flex;align-items:center;gap:8px;height:52px;position:sticky;top:0;z-index:100;border-bottom:1px solid rgba(200,164,74,.2);}
+.topbar-back{background:none;border:none;color:rgba(255,255,255,.55);font-size:22px;cursor:pointer;padding:0 6px;line-height:1;flex-shrink:0;}
+.topbar-back:active{color:var(--gold2);}
+.topbar-logo{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:var(--gold2);letter-spacing:1px;}
+.topbar-sep{width:1px;height:18px;background:rgba(255,255,255,.15);}
+.topbar-info{font-size:12px;color:rgba(255,255,255,.4);line-height:1.3;}
+.topbar-info strong{display:block;font-size:11px;color:rgba(255,255,255,.6);font-weight:500;}
+.topbar-space{flex:1;}
+
+.hole-header{background:linear-gradient(180deg,var(--g8) 0%,var(--g7) 100%);padding:12px 14px 14px;border-bottom:1px solid rgba(200,164,74,.2);}
+.hole-nav{display:flex;align-items:center;gap:0;margin-bottom:10px;}
+.hole-nav-btn{width:40px;height:40px;border-radius:var(--r2);border:1.5px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.hole-dots{flex:1;display:flex;justify-content:center;align-items:center;gap:3px;padding:0 4px;}
+.hole-dot{width:20px;height:20px;border-radius:5px;border:none;cursor:pointer;flex-shrink:0;font-size:9px;font-weight:700;font-family:'DM Mono',monospace;display:flex;align-items:center;justify-content:center;transition:all .12s;}
+.hole-dot.empty{background:rgba(255,255,255,.1);color:rgba(255,255,255,.4);}
+.hole-dot.partial{background:var(--g5);color:rgba(255,255,255,.9);}
+.hole-dot.done{background:var(--g3);color:white;}
+.hole-dot.active{background:var(--gold);color:var(--g9);transform:scale(1.15);font-weight:900;}
+.hole-dot.startmark{box-shadow:0 0 0 2px var(--gold2);}
+.hole-main{display:flex;align-items:flex-end;gap:14px;}
+.hole-num{font-family:'Barlow Condensed',sans-serif;font-size:60px;font-weight:700;color:white;line-height:1;flex-shrink:0;}
+.hole-meta{flex:1;padding-bottom:4px;}
+.hole-badges{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
+.nine-badge-h{font-size:10px;font-weight:700;background:rgba(255,255,255,.1);color:rgba(255,255,255,.5);padding:2px 8px;border-radius:99px;letter-spacing:.5px;}
+.hole-par-lbl{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--gold2);}
+.start-badge{font-size:10px;font-weight:700;background:var(--g8);color:var(--gold2);padding:2px 8px;border-radius:99px;}
+.hole-yards{font-size:12px;color:rgba(255,255,255,.4);margin-bottom:5px;display:flex;gap:10px;}
+.yard-item{display:flex;align-items:center;gap:4px;}
+.yard-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.hole-progress{display:flex;align-items:center;gap:8px;}
+.progress-track{flex:1;height:4px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--g3);border-radius:99px;transition:width .4s;}
+.progress-text{font-size:11px;color:rgba(255,255,255,.35);white-space:nowrap;}
+
+.players{padding:12px;flex:1;display:flex;flex-direction:column;gap:9px;}
+.pcard{background:var(--white);border-radius:var(--r);border:2px solid var(--bdr);transition:border-color .15s;}
+.pcard.filled{border-color:var(--g4);}
+.pcard.active{border-color:var(--g3);box-shadow:0 0 0 3px rgba(90,158,112,.18);}
+.pcard-inner{display:flex;align-items:center;min-height:68px;}
+.pcard-avatar{width:44px;height:68px;display:flex;align-items:center;justify-content:center;border-radius:calc(var(--r) - 2px) 0 0 calc(var(--r) - 2px);flex-shrink:0;}
+.pcard.filled .pcard-avatar,.pcard.active .pcard-avatar{background:var(--g7);}
+.avatar-circle{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:'Barlow Condensed',sans-serif;}
+.avatar-empty{background:var(--bdr);color:var(--ink4);}
+.avatar-filled{background:rgba(255,255,255,.15);color:rgba(255,255,255,.7);}
+.pcard-info{flex:1;padding:0 10px;}
+.pcard-name-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.pcard-name{font-size:14px;font-weight:700;color:var(--ink);}
+.pcard.filled .pcard-name,.pcard.active .pcard-name{color:var(--g7);}
+.tee-badge{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:99px;font-size:10px;font-weight:700;}
+.tee-badge.white{background:#f0f0f0;border:1px solid #ccc;color:#555;}
+.tee-badge.red{background:#fdeaea;border:1px solid #e09090;color:#aa2222;}
+.tee-dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.tee-dot.white{background:#ffffff;border:1px solid #bbb;}
+.tee-dot.red{background:#cc3333;}
+.pcard-sub{font-size:11px;color:var(--ink3);margin-top:2px;display:flex;align-items:center;gap:6px;}
+.pcard-total{font-size:12px;color:var(--ink2);margin-top:3px;}
+.score-badge{font-size:10px;padding:1px 6px;border-radius:4px;font-weight:700;}
+.score-badge.e{background:#b5e6c9;color:#0c5028;}.score-badge.b{background:#d8f0e3;color:#1a6b35;}
+.score-badge.p{background:#f0f0f0;color:#555;}.score-badge.bo{background:#fff2dc;color:#8a4e00;}
+.score-badge.do{background:#ffe4e4;color:#991111;}.score-badge.tr{background:#f5cccc;color:#771010;}
+
+.stepper{display:flex;align-items:center;padding-right:4px;flex-shrink:0;}
+.step-btn{width:44px;height:60px;border:none;background:none;font-size:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:var(--r2);color:var(--ink3);touch-action:manipulation;}
+.step-btn:active{background:var(--bg);transform:scale(.9);}
+.step-val{width:50px;text-align:center;font-family:'Barlow Condensed',monospace;font-size:42px;font-weight:700;color:var(--ink);line-height:1;position:relative;cursor:text;}
+.step-val.eagle{color:#0c5028;}.step-val.birdie{color:#1a6b35;}.step-val.bogey{color:#8a4e00;}
+.step-val.double{color:#991111;}.step-val.triple{color:#771010;}.step-val.empty,.step-val.par{color:var(--ink);}
+.step-hidden{position:absolute;inset:0;opacity:0;width:100%;height:100%;}
+.swipe-hint{text-align:center;font-size:11px;color:var(--ink4);padding:4px 0 2px;}
+
+.bottom-bar{position:sticky;bottom:0;background:var(--white);border-top:1px solid var(--bdr);padding:10px 12px;z-index:50;}
+.score-summary{display:flex;gap:6px;margin-bottom:8px;overflow-x:auto;}
+.summary-cell{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r3);padding:7px 5px;text-align:center;cursor:pointer;min-width:0;flex:1;}
+.summary-cell.hl{background:var(--g8);border-color:var(--g6);}
+.summary-name{font-size:9px;font-weight:700;color:var(--ink3);margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.summary-cell.hl .summary-name{color:rgba(255,255,255,.4);}
+.summary-score{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--ink);line-height:1;}
+.summary-cell.hl .summary-score{color:var(--gold2);}
+.summary-total{font-size:9px;color:var(--ink4);margin-top:1px;}
+.summary-cell.hl .summary-total{color:rgba(255,255,255,.35);}
+.summary-legend{font-size:9px;color:var(--ink4);text-align:right;margin-top:-4px;margin-bottom:4px;}
+.btns{display:flex;gap:8px;}
+.btn-card{width:50px;height:50px;background:var(--bg2);border:1.5px solid var(--bdr);border-radius:var(--r2);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.btn-next{flex:1;height:50px;background:var(--g5);color:white;border:none;border-radius:var(--r2);font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+.btn-next.final{background:var(--gold);color:var(--g9);}
+
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;display:flex;align-items:flex-end;}
+.sheet{background:var(--white);border-radius:var(--r) var(--r) 0 0;width:100%;max-height:90svh;overflow-y:auto;}
+.sheet-handle{width:36px;height:4px;background:var(--bdr);border-radius:99px;margin:12px auto 14px;}
+.sheet-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:var(--g7);padding:0 20px 12px;border-bottom:1px solid var(--bdr);}
+.sc-wrap{overflow-x:auto;}
+.sc-table{width:100%;border-collapse:collapse;font-size:12px;}
+.sc-table th{background:var(--g8);color:rgba(255,255,255,.6);font-size:10px;font-weight:700;padding:7px 4px;text-align:center;white-space:nowrap;}
+.sc-table th.nl{text-align:left;padding-left:12px;}
+.sc-table td{padding:8px 4px;text-align:center;font-family:'DM Mono',monospace;border-bottom:1px solid #f0ece4;white-space:nowrap;}
+.sc-table td.nl{text-align:left;font-family:'Noto Sans JP',sans-serif;font-weight:600;font-size:11px;padding-left:12px;}
+.sc-table td.tot{font-weight:700;background:rgba(45,97,71,.07);}
+.sc-table td.net{font-weight:700;color:var(--g5);background:var(--gold3);}
+.sc-table td.eagle{background:#b5e6c9;color:#0c5028;}.sc-table td.birdie{background:#d8f0e3;color:#1a6b35;}
+.sc-table td.bogey{background:#fff2dc;color:#8a4e00;}.sc-table td.double{background:#ffe4e4;color:#991111;}
+.sc-table td.triple{background:#f5cccc;color:#771010;}
+.sheet-footer{padding:14px;display:flex;gap:8px;}
+.btn-close{flex:1;padding:12px;background:var(--bg2);border:1.5px solid var(--bdr);border-radius:var(--r2);font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+.btn-confirm{flex:1;padding:12px;background:var(--gold);color:var(--g9);border:none;border-radius:var(--r2);font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+
+.setup-screen{padding:20px 14px;display:flex;flex-direction:column;gap:18px;}
+.setup-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;color:var(--g7);}
+.setup-sub{font-size:13px;color:var(--ink3);margin-top:3px;line-height:1.6;}
+.setup-section{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:14px;}
+.setup-sec-title{font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+.tee-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bdr);}
+.tee-row:last-child{border-bottom:none;}
+.tee-avatar{width:30px;height:30px;border-radius:50%;background:var(--g6);color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.tee-name-block{flex:1;}
+.tee-name{font-size:14px;font-weight:700;}
+.tee-gender{font-size:11px;color:var(--ink3);margin-top:1px;}
+.tee-toggle{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;border:2px solid;cursor:pointer;font-family:'Noto Sans JP',sans-serif;background:none;}
+.tee-toggle.white{border-color:#ccc;background:#f8f8f8;}
+.tee-toggle.red{border-color:#e09090;background:#fdeaea;}
+.tee-toggle-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+.tee-toggle-dot.white{background:#fff;border:2px solid #bbb;}
+.tee-toggle-dot.red{background:#cc3333;}
+.tee-toggle-label{font-size:13px;font-weight:700;}
+.tee-toggle.white .tee-toggle-label{color:#444;}
+.tee-toggle.red .tee-toggle-label{color:#aa2222;}
+.hole-picker{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
+.hole-pick-btn{aspect-ratio:1;border-radius:var(--r3);border:2px solid var(--bdr);background:var(--white);font-family:'DM Mono',monospace;font-size:15px;font-weight:700;color:var(--ink2);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.hole-pick-btn.in-start{border-color:var(--g4);color:var(--g5);}
+.hole-pick-btn:active{transform:scale(.92);}
+.info-row{display:flex;align-items:center;gap:10px;background:var(--gold3);border:1px solid var(--gold);border-radius:var(--r2);padding:12px 14px;font-size:12px;color:var(--g7);line-height:1.6;}
+.confirm-screen{padding:20px 14px;}
+.confirm-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;color:var(--g7);margin-bottom:4px;}
+.confirm-sub{font-size:13px;color:var(--ink3);margin-bottom:16px;}
+.warn-box{background:#fff4e0;border:1px solid #e8a830;border-radius:var(--r2);padding:11px 14px;font-size:12px;color:#7a4800;margin-bottom:14px;line-height:1.6;}
+.confirm-btns{display:flex;gap:8px;}
+.btn-back2{padding:12px 16px;background:var(--bg2);border:1.5px solid var(--bdr);border-radius:var(--r2);font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+.btn-send{flex:1;padding:14px;background:var(--gold);color:var(--g9);border:none;border-radius:var(--r2);font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+.success-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60svh;padding:32px 24px;text-align:center;}
+.success-ico{font-size:68px;margin-bottom:18px;}
+.success-title{font-family:'Barlow Condensed',sans-serif;font-size:30px;font-weight:700;color:var(--g6);margin-bottom:8px;}
+.success-sub{font-size:14px;color:var(--ink3);line-height:1.8;}
+.primary-btn{width:100%;padding:14px;background:var(--g5);color:white;border:none;border-radius:var(--r2);font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+.primary-btn:active{opacity:.85;}
+.autosave{display:flex;align-items:center;gap:5px;font-size:11px;color:rgba(255,255,255,.35);}
+.autosave-dot{width:6px;height:6px;border-radius:50%;background:#4caf78;}
+.autosave-dot.pend{background:#d07820;animation:blink .7s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:var(--g8);color:white;padding:10px 20px;border-radius:var(--r2);font-size:13px;z-index:300;box-shadow:0 4px 20px rgba(0,0,0,.3);animation:fadeIn .2s;border:1px solid rgba(200,164,74,.3);}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--bdr);border-top-color:var(--g5);border-radius:50%;animation:spin .6s linear infinite;}
+
+.error-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80svh;padding:32px 24px;text-align:center;gap:16px;}
+.error-ico{font-size:48px;}
+.error-title{font-size:18px;font-weight:700;color:var(--ink);}
+.error-msg{font-size:14px;color:var(--ink3);line-height:1.6;}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+// ══════════════════════════════════════════════════════════════
+// DJGA Score Caddie — Player Mode (score.html)
+// QRコード経由でアクセスするプレイヤー専用スコア入力画面
+// ══════════════════════════════════════════════════════════════
+
+// ── GAS API（プレイヤーに必要な機能のみ） ────────────────────
+const API = {
+  url: "",
+  async get(action, params = {}) {
+    const qs = new URLSearchParams({ action, ...params }).toString();
+    const res = await fetch(`${this.url}?${qs}`, { redirect: "follow" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  },
+  async post(body) {
+    const res = await fetch(this.url, {
+      method: "POST", headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify(body), redirect: "follow",
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  },
+  async ping() { const r = await this.get("ping"); return r && r.ok; },
+  async getConfig() { const r = await this.get("getConfig"); return r?.ok ? r.config : null; },
+  async getGroups() { const r = await this.get("getGroups"); return r?.ok ? r.groups : {}; },
+  async saveScores(groupNum, members, scores, hcMode) {
+    return this.post({ action: "saveScores", groupNum, members, scores, hcMode });
+  },
+};
+
+// ── 計算 ─────────────────────────────────────────────────────
+function calcNewPeriaHC(scores, par, hidden, maxHC) {
+  if (!hidden?.length) return 0;
+  const hs = hidden.reduce((s,h) => s + (parseInt(scores[h])||0), 0);
+  const ratio = 18 / hidden.length;
+  const cp = par.reduce((a,b)=>a+b,0);
+  let hc = (hs * ratio - cp) * 0.8;
+  return Math.max(0, Math.min(Math.round(hc*10)/10, maxHC));
+}
+function getHC(scores, par, hidden, maxHC, hcMode, fixedHC) {
+  if (hcMode === "fixed") return Math.min(Number(fixedHC) || 0, maxHC);
+  return calcNewPeriaHC(scores, par, hidden, maxHC);
+}
+function sumArr(a) { return a.reduce((s,v) => s+(parseInt(v)||0), 0); }
+function scClass(sc, p) {
+  if (!sc && sc!==0) return "empty"; const d=sc-p;
+  if(d<=-2)return"eagle";if(d===-1)return"birdie";if(d===1)return"bogey";if(d===2)return"double";if(d>=3)return"triple";return"par";
+}
+function scLabel(sc, p) {
+  if(!sc)return null;const d=sc-p;
+  if(d<=-2)return["e","イーグル"];if(d===-1)return["b","バーディ"];if(d===0)return["p","パー"];if(d===1)return["bo","ボギー"];if(d===2)return["do","ダブル"];return["tr","+"+d];
+}
+
+// ── Stepper ──────────────────────────────────────────────────
+function Stepper({ value, par, onChange, onFocus }) {
+  const inputRef = useRef(null); const timerRef = useRef(null);
+  const cls = scClass(value, par);
+  const inc = () => onChange(value===""?par:Math.min(15,parseInt(value)+1));
+  const dec = () => onChange(value===""?par:Math.max(1,parseInt(value)-1));
+  const start = (fn,e) => { e.preventDefault();e.stopPropagation();onFocus?.();fn();timerRef.current=setTimeout(()=>{timerRef.current=setInterval(fn,120);},500); };
+  const end = (e) => { e?.stopPropagation();clearTimeout(timerRef.current);clearInterval(timerRef.current); };
+  return (
+    <div className="stepper">
+      <button className="step-btn" onPointerDown={e=>start(dec,e)} onPointerUp={end} onPointerLeave={end}>{"\uff0d"}</button>
+      <div className={"step-val "+cls} onClick={e=>{e.stopPropagation();inputRef.current?.focus();}}>
+        <input ref={inputRef} type="number" min="1" max="15" value={value}
+          onChange={e=>{const n=parseInt(e.target.value);if(n>=1&&n<=15)onChange(n);}} onFocus={onFocus} className="step-hidden" inputMode="numeric" />
+        {value!==""?value:"\u2014"}
+      </div>
+      <button className="step-btn" onPointerDown={e=>start(inc,e)} onPointerUp={end} onPointerLeave={end}>{"\uff0b"}</button>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// SCORE INPUT PAGE
+// ══════════════════════════════════════════════════════════════
+function ScoreInputPage({ gn, members, config, showToast }) {
+  const [phase, setPhase] = useState("setup");
+  const [lm, setLm] = useState(members);
+  const [sh, setSh] = useState(0);
+  const [hole, setHole] = useState(0);
+  const [scores, setScores] = useState(()=>members.map(()=>Array(18).fill("")));
+  const [ap, setAp] = useState(0);
+  const [ss, setSs] = useState("ok");
+  const [showCard, setSC] = useState(false);
+  const P=config.par, W=config.white, R=config.red;
+
+  const tc=lm.length*18, fc=scores.flat().filter(v=>v!=="").length, allF=fc===tc;
+  const par=P[hole], nine=hole<9?"OUT":"IN";
+
+  const next=()=>{const n=(hole+1)%18;if(allF||n===sh)setSC(true);else setHole(n);};
+  const prev=()=>setHole((hole-1+18)%18);
+  const isLast=()=>(hole+1)%18===sh;
+  const setScore=(pi,hi,val)=>{setScores(p=>{const n=p.map(r=>[...r]);n[pi][hi]=val;return n;});setSs("pending");};
+
+  const touchX=useRef(null);
+  const onTS=e=>{touchX.current=e.touches[0].clientX;};
+  const onTE=e=>{if(touchX.current===null)return;const dx=e.changedTouches[0].clientX-touchX.current;if(dx<-60)next();else if(dx>60)prev();touchX.current=null;};
+
+  const totals=scores.map((s,pi)=>{
+    const out=sumArr(s.slice(0,9)),inn=sumArr(s.slice(9)),gross=out+inn;
+    const hc=getHC(s,P,config.hidden,config.maxHC,config.hcMode,lm[pi]?.fixedHC);
+    return{out,in:inn,gross,hc,net:gross>0?Math.round((gross-hc)*10)/10:0};
+  });
+  const haf=h=>scores.every(s=>s[h]!=="");
+  const hsf=h=>scores.some(s=>s[h]!=="");
+  const btnLabel=allF?"全ホール入力完了 → 確認":isLast()?"最終ホール → カード":`次 → H${(hole+1)%18+1}`;
+
+  // Setup
+  if(phase==="setup"){
+    const togTee=pi=>setLm(p=>p.map((m,i)=>i===pi?{...m,tee:m.tee==="white"?"red":"white"}:m));
+    const pick=i=>{setSh(i);setHole(i);setPhase("input");};
+    return(<>
+      <div className="topbar">
+        <div className="topbar-logo">DJGA</div><div className="topbar-sep" />
+        <div className="topbar-info"><strong>{gn}組 — スタート設定</strong>{config.courseName}</div></div>
+      <div className="setup-screen">
+        <div className="setup-section"><div className="setup-sec-title">ティー設定</div>
+          {lm.map((m,pi)=>(<div key={pi} className="tee-row"><div className="tee-avatar">{m.name[0]}</div>
+            <div className="tee-name-block"><div className="tee-name">{m.name}</div><div className="tee-gender">{m.tee==="white"?"White":"Red"} Tee</div></div>
+            <button className={"tee-toggle "+m.tee} onClick={()=>togTee(pi)}><span className={"tee-toggle-dot "+m.tee} /><span className="tee-toggle-label">{m.tee==="white"?"White":"Red"}</span></button>
+          </div>))}
+        </div>
+        <div><div className="setup-title">スタートホール</div><div className="setup-sub">ショットガンは割り当てホールを、通常は「1」。</div></div>
+        <div className="setup-section"><div className="setup-sec-title">ホール番号</div>
+          <div className="hole-picker">{Array.from({length:18},(_,i)=>(<button key={i} className={"hole-pick-btn"+(i>=9?" in-start":"")} onClick={()=>pick(i)}>{i+1}</button>))}</div>
+        </div>
+      </div>
+    </>);
+  }
+
+  // Done
+  if(phase==="done")return(<>
+    <div className="topbar"><div className="topbar-logo">DJGA</div><div className="topbar-sep" /><div className="topbar-info"><strong>{gn}組 — 完了</strong></div></div>
+    <div className="success-screen"><div className="success-ico">🏆</div><div className="success-title">送信完了！</div>
+      <div className="success-sub">スコアがSpreadsheetに保存されました。<br/>順位表は幹事が公開後にご確認ください。</div>
+      <div style={{marginTop:24,fontSize:14,color:"var(--ink3)"}}>このページを閉じて構いません。</div>
+    </div></>);
+
+  // Confirm
+  if(phase==="confirm")return(<>
+    <div className="topbar"><button className="topbar-back" onClick={()=>setPhase("input")}>‹</button><div className="topbar-sep" />
+      <div className="topbar-info"><strong>{gn}組 — 確認</strong></div></div>
+    <div className="confirm-screen">
+      <div className="confirm-title">最終確認</div><div className="confirm-sub">紙のカードと照合してください</div>
+      <div className="sc-wrap" style={{marginBottom:16,borderRadius:10,border:"1px solid var(--bdr)"}}>
+        <table className="sc-table"><thead><tr><th className="nl">名前</th>
+          {Array.from({length:9},(_,i)=><th key={i}>{i+1}</th>)}<th>OUT</th>
+          {Array.from({length:9},(_,i)=><th key={i+9}>{i+10}</th>)}<th>IN</th>
+          <th>GR</th><th>HC</th><th>NET</th></tr></thead><tbody>
+          {lm.map((m,pi)=>{const s=scores[pi],t=totals[pi];return(<tr key={pi}><td className="nl">{m.name.split(" ")[0]}</td>
+            {s.slice(0,9).map((v,i)=><td key={i} className={v?scClass(v,P[i]):""}>{v||"·"}</td>)}<td className="tot">{t.out||"—"}</td>
+            {s.slice(9).map((v,i)=><td key={i+9} className={v?scClass(v,P[i+9]):""}>{v||"·"}</td>)}<td className="tot">{t.in||"—"}</td>
+            <td className="tot">{t.gross||"—"}</td><td>{t.hc||"—"}</td><td className="net">{t.net||"—"}</td></tr>);})}
+        </tbody></table></div>
+      <div className="warn-box">⚠️ 送信後の修正は幹事にお願いしてください（Spreadsheetで直接編集可）。</div>
+      <div className="confirm-btns">
+        <button className="btn-back2" onClick={()=>setPhase("input")}>← 修正</button>
+        <button className="btn-send" onClick={async()=>{
+          try{await API.saveScores(gn,lm,scores,config.hcMode);showToast("✅ Spreadsheetに送信完了！");}
+          catch{showToast("❌ 送信失敗。ネットワークを確認してください");return;}
+          setPhase("done");
+        }}>送信する ✓</button>
+      </div>
+    </div></>);
+
+  // Input
+  return(<>
+    <div className="topbar">
+      <div className="topbar-logo">DJGA</div><div className="topbar-sep" />
+      <div className="topbar-info"><strong>{gn}組</strong>{config.courseName}</div>
+      <div className="topbar-space" />
+      <div className="autosave"><div className={"autosave-dot"+(ss==="pending"?" pend":"")} />{ss==="pending"?"入力中":"保存済"}</div>
+    </div>
+
+    <div className="hole-header">
+      <div className="hole-nav">
+        <button className="hole-nav-btn" onClick={prev}>‹</button>
+        <div className="hole-dots">{Array.from({length:18},(_,i)=>{
+          const st=haf(i)?"done":hsf(i)?"partial":"empty";
+          return <button key={i} className={`hole-dot ${st}${i===hole?" active":""}${i===sh?" startmark":""}`}
+            onClick={()=>setHole(i)}>{i+1}</button>;
+        })}</div>
+        <button className="hole-nav-btn" onClick={next}>›</button>
+      </div>
+      <div className="hole-main">
+        <div className="hole-num">{hole+1}</div>
+        <div className="hole-meta">
+          <div className="hole-badges"><span className="nine-badge-h">{nine}</span><span className="hole-par-lbl">Par {par}</span>
+            {hole===sh&&<span className="start-badge">START</span>}</div>
+          <div className="hole-yards">
+            <span className="yard-item"><span className="yard-dot" style={{background:"#fff",border:"1px solid #aaa"}} />{W[hole]}y</span>
+            <span className="yard-item"><span className="yard-dot" style={{background:"#cc3333"}} />{R[hole]}y</span>
+          </div>
+          <div className="hole-progress"><div className="progress-track"><div className="progress-fill" style={{width:`${(fc/tc)*100}%`}} /></div><span className="progress-text">{fc}/{tc}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div className="players" onTouchStart={onTS} onTouchEnd={onTE}>
+      {lm.map((m,pi)=>{const sc=scores[pi][hole],filled=sc!=="";const lbl=scLabel(sc,par);return(
+        <div key={pi} className={`pcard${filled?" filled":""}${ap===pi?" active":""}`} onClick={()=>setAp(pi)}>
+          <div className="pcard-inner">
+            <div className="pcard-avatar"><div className={`avatar-circle ${filled?"avatar-filled":"avatar-empty"}`}>{m.name[0]}</div></div>
+            <div className="pcard-info">
+              <div className="pcard-name-row">
+                <span className="pcard-name">{m.name}</span>
+                <span className={`tee-badge ${m.tee}`}><span className={`tee-dot ${m.tee}`} />{m.tee==="white"?"W":"R"}</span>
+                {lbl&&<span className={`score-badge ${lbl[0]}`}>{lbl[1]}</span>}
+              </div>
+              <div className="pcard-sub">H{hole+1}: {filled?sc:"未入力"}{totals[pi].gross>0&&<span className="pcard-total">GR:{totals[pi].gross} / HC:{totals[pi].hc} / Net:{totals[pi].net}</span>}</div>
+            </div>
+            <Stepper value={sc} par={par} onChange={v=>setScore(pi,hole,v)} onFocus={()=>setAp(pi)} />
+          </div>
+        </div>
+      );})}
+      <div className="swipe-hint">← スワイプでホール移動 →</div>
+    </div>
+
+    <div className="bottom-bar">
+      <div className="summary-legend">タップで移動</div>
+      <div className="score-summary">{lm.map((m,pi)=>(<div key={pi} className={`summary-cell${ap===pi?" hl":""}`} onClick={()=>setAp(pi)}>
+        <div className="summary-name">{m.name.split(" ")[0]}</div>
+        <div className="summary-score">{scores[pi][hole]||"—"}</div>
+        <div className="summary-total">GR:{totals[pi].gross||"—"}</div>
+      </div>))}</div>
+      <div className="btns">
+        <button className="btn-card" onClick={()=>setSC(true)}>📋</button>
+        <button className={`btn-next${allF||isLast()?" final":""}`} onClick={next}>{btnLabel}</button>
+      </div>
+    </div>
+
+    {showCard&&(<div className="sheet-overlay" onClick={()=>setSC(false)}><div className="sheet" onClick={e=>e.stopPropagation()}>
+      <div className="sheet-handle" /><div className="sheet-title">スコアカード</div>
+      <div className="sc-wrap"><table className="sc-table"><thead><tr><th className="nl">名前</th>
+        {Array.from({length:9},(_,i)=><th key={i}>{i+1}</th>)}<th>OUT</th>
+        {Array.from({length:9},(_,i)=><th key={i+9}>{i+10}</th>)}<th>IN</th>
+        <th>GR</th><th>HC</th><th>NET</th></tr></thead><tbody>
+        {lm.map((m,pi)=>{const s=scores[pi],t=totals[pi];return(<tr key={pi}><td className="nl">{m.name.split(" ")[0]}</td>
+          {s.slice(0,9).map((v,i)=><td key={i} className={v?scClass(v,P[i]):""}>{v||"·"}</td>)}<td className="tot">{t.out||"—"}</td>
+          {s.slice(9).map((v,i)=><td key={i+9} className={v?scClass(v,P[i+9]):""}>{v||"·"}</td>)}<td className="tot">{t.in||"—"}</td>
+          <td className="tot">{t.gross||"—"}</td><td>{t.hc||"—"}</td><td className="net">{t.net||"—"}</td></tr>);})}
+      </tbody></table></div>
+      <div className="sheet-footer">
+        <button className="btn-close" onClick={()=>setSC(false)}>閉じる</button>
+        {allF&&<button className="btn-confirm" onClick={()=>{setSC(false);setPhase("confirm");}}>確認画面へ →</button>}
+      </div>
+    </div></div>)}
+  </>);
+}
+
+// ══════════════════════════════════════════════════════════════
+// APP — URLパラメータから自動起動
+// ══════════════════════════════════════════════════════════════
+function App() {
+  const [state, setState] = useState("loading"); // loading | error | ready
+  const [errorMsg, setError] = useState("");
+  const [config, setConfig] = useState(null);
+  const [members, setMembers] = useState([]);
+  const [groupNum, setGroupNum] = useState("");
+  const [toast, setToast] = useState("");
+
+  const showToast = m => { setToast(m); setTimeout(()=>setToast(""),2500); };
+
+  useEffect(() => {
+    (async () => {
+      const params = new URLSearchParams(window.location.search);
+      const group = params.get("group");
+      const gas = params.get("gas");
+
+      if (!group || !gas) {
+        setError("このページはQRコードからアクセスしてください。\n\nURLに group と gas パラメータが必要です。");
+        setState("error");
+        return;
+      }
+
+      API.url = gas;
+      setGroupNum(group);
+
+      try {
+        const ok = await API.ping();
+        if (!ok) { setError("サーバーに接続できません。\n幹事に連絡してください。"); setState("error"); return; }
+
+        const [cfg, grp] = await Promise.all([API.getConfig(), API.getGroups()]);
+        if (!cfg?.courseName) { setError("大会設定が見つかりません。\n幹事に連絡してください。"); setState("error"); return; }
+
+        const m = grp?.[group];
+        if (!m || m.length === 0) { setError(`${group}組のメンバーが登録されていません。\n幹事に連絡してください。`); setState("error"); return; }
+
+        setConfig(cfg);
+        setMembers(m);
+        setState("ready");
+      } catch (e) {
+        setError("接続エラーが発生しました。\n\n電波状況を確認して再読み込みしてください。");
+        setState("error");
+      }
+    })();
+  }, []);
+
+  if (state === "loading") return (
+    <div className="app" style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100svh",flexDirection:"column",gap:12}}>
+      <div className="spinner" style={{width:28,height:28}} />
+      <div style={{fontSize:13,color:"var(--ink4)"}}>スコア入力を準備中...</div>
+    </div>
+  );
+
+  if (state === "error") return (
+    <div className="app">
+      <div className="topbar"><div className="topbar-logo">DJGA</div><div className="topbar-sep" /><div className="topbar-info"><strong>Score Caddie</strong></div></div>
+      <div className="error-screen">
+        <div className="error-ico">⚠️</div>
+        <div className="error-title">読み込みエラー</div>
+        <div className="error-msg" style={{whiteSpace:"pre-line"}}>{errorMsg}</div>
+        <button className="primary-btn" style={{maxWidth:280,marginTop:8}} onClick={()=>window.location.reload()}>再読み込み</button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="app">
+      {toast && <div className="toast">{toast}</div>}
+      <ScoreInputPage gn={groupNum} members={members} config={config} showToast={showToast} />
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
