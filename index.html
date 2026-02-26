@@ -413,39 +413,12 @@ function App() {
   const [selGroup, setSel]    = useState(null);
   const [loading, setLoading] = useState(true);
   const [toast, setToast]     = useState("");
-  const [playerMode, setPM]   = useState(false);
-  const [playerError, setPE]  = useState("");
 
   const showToast = m => { setToast(m); setTimeout(()=>setToast(""),2500); };
 
-  // Init: check URL params for player mode, else load GAS URL from localStorage
+  // Init: load GAS URL from localStorage
   useEffect(() => {
     (async () => {
-      const params = new URLSearchParams(window.location.search);
-      const qGroup = params.get("group");
-      const qGas = params.get("gas");
-
-      // ── Player Mode: ?group=N&gas=URL ──
-      if (qGroup && qGas) {
-        setPM(true);
-        API.url = qGas;
-        try {
-          const ok = await API.ping();
-          if (!ok) { setPE("サーバーに接続できません"); setLoading(false); return; }
-          setConn(true);
-          const [cfg, grp] = await Promise.all([API.getConfig(), API.getGroups()]);
-          if (cfg?.courseName) setConfig(cfg);
-          if (grp) setGroups(grp);
-          const members = grp?.[qGroup];
-          if (!members || members.length === 0) { setPE(`${qGroup}組のメンバーが未登録です`); setLoading(false); return; }
-          setSel(qGroup);
-          setPage("scoreInput");
-        } catch (e) { setPE("接続エラー: " + e.message); }
-        setLoading(false);
-        return;
-      }
-
-      // ── Admin Mode: normal flow ──
       const url = await loadGasUrl();
       if (url) {
         setGasUrl(url);
@@ -484,18 +457,7 @@ function App() {
 
   const coursePar = config.par?.reduce((a,b)=>a+b,0) || 72;
 
-  if (loading) return (<><div className="app" style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100svh",flexDirection:"column",gap:12}}>
-    <div className="spinner" style={{width:28,height:28}} />
-    {playerMode && <div style={{fontSize:13,color:"var(--ink4)"}}>スコア入力を準備中...</div>}
-  </div></>);
-
-  // Player mode error
-  if (playerMode && playerError) return (<><div className="app" style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100svh",flexDirection:"column",gap:16,padding:32,textAlign:"center"}}>
-    <div style={{fontSize:48}}>⚠️</div>
-    <div style={{fontSize:16,fontWeight:700,color:"var(--ink)"}}>読み込みエラー</div>
-    <div style={{fontSize:14,color:"var(--ink3)",lineHeight:1.6}}>{playerError}</div>
-    <button className="primary-btn" style={{marginTop:8}} onClick={()=>window.location.reload()}>再読み込み</button>
-  </div></>);
+  if (loading) return (<><div className="app" style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100svh"}}><div className="spinner" style={{width:28,height:28}} /></div></>);
 
   return (
     <>
@@ -506,7 +468,7 @@ function App() {
       {page==="groups" && <GroupListPage groups={groups} setGroups={setGroups} setSel={setSel} setPage={setPage} connected={connected} showToast={showToast} />}
       {page==="groupDetail" && <GroupDetailPage gn={selGroup} groups={groups} setGroups={setGroups} config={config} connected={connected} showToast={showToast} setPage={setPage} />}
       {page==="scoreSelect" && <ScoreSelectPage groups={groups} setSel={setSel} setPage={setPage} />}
-      {page==="scoreInput" && <ScoreInputPage gn={selGroup} members={groups[selGroup]||[]} config={config} connected={connected} showToast={showToast} setPage={setPage} playerMode={playerMode} />}
+      {page==="scoreInput" && <ScoreInputPage gn={selGroup} members={groups[selGroup]||[]} config={config} connected={connected} showToast={showToast} setPage={setPage} />}
       {page==="ranking" && <RankingPage config={config} connected={connected} setPage={setPage} />}
     </div></>
   );
@@ -849,8 +811,9 @@ function GroupDetailPage({ gn, groups, setGroups, config, connected, showToast, 
   };
 
   const base = window.location.href.split("?")[0].split("#")[0];
+  const scoreUrl = base.replace(/index\.html$/, "") + "score.html";
   const gasParam = API.url ? `&gas=${encodeURIComponent(API.url)}` : "";
-  const qrData = `${base}?group=${gn}${gasParam}`;
+  const qrData = `${scoreUrl}?group=${gn}${gasParam}`;
   const copyLink = () => { navigator.clipboard.writeText(qrData).catch(()=>{}); setCopied(true);setTimeout(()=>setCopied(false),2000);showToast("📋 コピー"); };
 
   return (<>
@@ -1021,7 +984,7 @@ function RankingPage({ config, connected, setPage }) {
 // ══════════════════════════════════════════════════════════════
 // SCORE INPUT (v4 integrated, config-driven, GAS save)
 // ══════════════════════════════════════════════════════════════
-function ScoreInputPage({ gn, members, config, connected, showToast, setPage, playerMode }) {
+function ScoreInputPage({ gn, members, config, connected, showToast, setPage }) {
   const [phase, setPhase] = useState("setup");
   const [lm, setLm] = useState(members);
   const [sh, setSh] = useState(0);
@@ -1058,7 +1021,7 @@ function ScoreInputPage({ gn, members, config, connected, showToast, setPage, pl
     const togTee=pi=>setLm(p=>p.map((m,i)=>i===pi?{...m,tee:m.tee==="white"?"red":"white"}:m));
     const pick=i=>{setSh(i);setHole(i);setPhase("input");};
     return(<>
-      <div className="topbar"><button className="topbar-back" onClick={()=>{if(playerMode){if(confirm("スコア入力を終了しますか？"))window.location.href=window.location.pathname;}else setPage("home");}}>‹</button>
+      <div className="topbar"><button className="topbar-back" onClick={()=>setPage("home")}>‹</button>
         <div className="topbar-logo">DJGA</div><div className="topbar-sep" />
         <div className="topbar-info"><strong>{gn}組 — スタート設定</strong>{config.courseName}</div></div>
       <div className="setup-screen">
@@ -1081,9 +1044,7 @@ function ScoreInputPage({ gn, members, config, connected, showToast, setPage, pl
     <div className="topbar"><div className="topbar-logo">DJGA</div><div className="topbar-sep" /><div className="topbar-info"><strong>{gn}組 — 完了</strong></div></div>
     <div className="success-screen"><div className="success-ico">🏆</div><div className="success-title">送信完了！</div>
       <div className="success-sub">スコアがSpreadsheetに保存されました。<br/>順位表は幹事が公開後にご確認ください。</div>
-      {playerMode
-        ? <div style={{marginTop:24,fontSize:14,color:"var(--ink3)"}}>このページを閉じて構いません。</div>
-        : <button className="primary-btn" style={{marginTop:24,maxWidth:280}} onClick={()=>setPage("home")}>ホームに戻る</button>}
+      <button className="primary-btn" style={{marginTop:24,maxWidth:280}} onClick={()=>setPage("home")}>ホームに戻る</button>
     </div></>);
 
   // Confirm
@@ -1116,7 +1077,7 @@ function ScoreInputPage({ gn, members, config, connected, showToast, setPage, pl
   // Input
   return(<>
     <div className="topbar">
-      <button className="topbar-back" onClick={()=>{if(confirm("離れますか？")){if(playerMode)window.location.href=window.location.pathname;else setPage("home");}}}>‹</button>
+      <button className="topbar-back" onClick={()=>{if(confirm("離れますか？"))setPage("home");}}>‹</button>
       <div className="topbar-logo">DJGA</div><div className="topbar-sep" />
       <div className="topbar-info"><strong>{gn}組</strong>{config.courseName}</div>
       <div className="topbar-space" />
