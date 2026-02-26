@@ -36,9 +36,8 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--ink)
 .home-btn{display:flex;align-items:center;gap:14px;background:var(--white);border:2px solid var(--bdr);border-radius:var(--r);padding:16px;cursor:pointer;transition:all .12s;text-align:left;width:100%;font-family:inherit;}
 .home-btn:active{border-color:var(--g4);background:var(--bg2);}
 .home-btn-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
-.home-btn-icon.cfg{background:#5c4a1e;color:var(--gold2);}
+.home-btn-icon.icfg{background:#5c4a1e;color:var(--gold2);}
 .home-btn-icon.grp{background:var(--g7);color:white;}
-.home-btn-icon.score{background:var(--gold);color:var(--g9);}
 .home-btn-icon.rank{background:#2c5282;color:white;}
 .home-btn-label{font-size:16px;font-weight:700;color:var(--ink);}
 .home-btn-desc{font-size:12px;color:var(--ink3);margin-top:2px;}
@@ -283,7 +282,7 @@ const DEFAULTS = {
 
 // ── GAS URL ──────────────────────────────────────────────────
 // ↓↓↓ ここにGAS URLを貼り付けてください ↓↓↓
-const GAS_URL = "https://script.google.com/macros/s/AKfycby6RQuaIs_KNxf1vIdKIiZV4gbvsjkspnz9SaCQ-pzRxvW8hZCiTpmysIooUuqUbsG4/exec";
+const GAS_URL = "YOUR_GAS_URL_HERE";
 // ↑↑↑ 例: "https://script.google.com/macros/s/AKfycbx.../exec" ↑↑↑
 
 async function loadGasUrl() {
@@ -352,57 +351,10 @@ const API = {
   },
 };
 
-// ── 計算 ─────────────────────────────────────────────────────
-function calcNewPeriaHC(scores, par, hidden, maxHC) {
-  if (!hidden?.length) return 0;
-  const hs = hidden.reduce((s,h) => s + (parseInt(scores[h])||0), 0);
-  const ratio = 18 / hidden.length;
-  const cp = par.reduce((a,b)=>a+b,0);
-  let hc = (hs * ratio - cp) * 0.8;
-  return Math.max(0, Math.min(Math.round(hc*10)/10, maxHC));
-}
-function getHC(scores, par, hidden, maxHC, hcMode, fixedHC) {
-  if (hcMode === "fixed") return Math.min(Number(fixedHC) || 0, maxHC);
-  return calcNewPeriaHC(scores, par, hidden, maxHC);
-}
-function sumArr(a) { return a.reduce((s,v) => s+(parseInt(v)||0), 0); }
-function scClass(sc, p) {
-  if (!sc && sc!==0) return "empty"; const d=sc-p;
-  if(d<=-2)return"eagle";if(d===-1)return"birdie";if(d===1)return"bogey";if(d===2)return"double";if(d>=3)return"triple";return"par";
-}
-function scLabel(sc, p) {
-  if(!sc)return null;const d=sc-p;
-  if(d<=-2)return["e","イーグル"];if(d===-1)return["b","バーディ"];if(d===0)return["p","パー"];if(d===1)return["bo","ボギー"];if(d===2)return["do","ダブル"];return["tr","+"+d];
-}
 
 function QRImage({ data, size=200 }) {
   return <img src={`https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(data)}&margin=8&color=163824&bgcolor=f2ede3`}
     alt="QR" width={size} height={size} style={{borderRadius:12,border:"3px solid #e2ddd2"}} onError={e=>{e.target.style.display="none";}} />;
-}
-
-// ══════════════════════════════════════════════════════════════
-// CSS (same as v6 + additions for connection status)
-// ══════════════════════════════════════════════════════════════
-
-// ── Stepper ──────────────────────────────────────────────────
-function Stepper({ value, par, onChange, onFocus }) {
-  const inputRef = useRef(null); const timerRef = useRef(null);
-  const cls = scClass(value, par);
-  const inc = () => onChange(value===""?par:Math.min(15,parseInt(value)+1));
-  const dec = () => onChange(value===""?par:Math.max(1,parseInt(value)-1));
-  const start = (fn,e) => { e.preventDefault();e.stopPropagation();onFocus?.();fn();timerRef.current=setTimeout(()=>{timerRef.current=setInterval(fn,120);},500); };
-  const end = (e) => { e?.stopPropagation();clearTimeout(timerRef.current);clearInterval(timerRef.current); };
-  return (
-    <div className="stepper">
-      <button className="step-btn" onPointerDown={e=>start(dec,e)} onPointerUp={end} onPointerLeave={end}>{"\uff0d"}</button>
-      <div className={"step-val "+cls} onClick={e=>{e.stopPropagation();inputRef.current?.focus();}}>
-        <input ref={inputRef} type="number" min="1" max="15" value={value}
-          onChange={e=>{const n=parseInt(e.target.value);if(n>=1&&n<=15)onChange(n);}} onFocus={onFocus} className="step-hidden" inputMode="numeric" />
-        {value!==""?value:"\u2014"}
-      </div>
-      <button className="step-btn" onPointerDown={e=>start(inc,e)} onPointerUp={end} onPointerLeave={end}>{"\uff0b"}</button>
-    </div>
-  );
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -471,8 +423,6 @@ function App() {
       {page==="config" && <ConfigPage config={config} setConfig={setConfig} gasUrl={gasUrl} connected={connected} connectGas={connectGas} showToast={showToast} setPage={setPage} />}
       {page==="groups" && <GroupListPage groups={groups} setGroups={setGroups} setSel={setSel} setPage={setPage} connected={connected} showToast={showToast} />}
       {page==="groupDetail" && <GroupDetailPage gn={selGroup} groups={groups} setGroups={setGroups} config={config} connected={connected} showToast={showToast} setPage={setPage} />}
-      {page==="scoreSelect" && <ScoreSelectPage groups={groups} setSel={setSel} setPage={setPage} />}
-      {page==="scoreInput" && <ScoreInputPage gn={selGroup} members={groups[selGroup]||[]} config={config} connected={connected} showToast={showToast} setPage={setPage} />}
       {page==="ranking" && <RankingPage config={config} connected={connected} setPage={setPage} />}
     </div></>
   );
@@ -525,18 +475,13 @@ function HomePage({ setPage, groups, setGroups, config, setConfig, coursePar, co
       )}
       <div className="home-menu">
         <button className="home-btn" onClick={()=>setPage("config")}>
-          <div className="home-btn-icon cfg">⚙</div>
+          <div className="home-btn-icon icfg">⚙</div>
           <div><div className="home-btn-label">大会設定</div><div className="home-btn-desc">GAS接続 / {config.hcMode==="fixed"?"固定HC":"新ペリア"} / Par {coursePar}</div></div>
           <div className="home-btn-arrow">›</div>
         </button>
         <button className="home-btn" onClick={()=>setPage("groups")}>
           <div className="home-btn-icon grp">👥</div>
           <div><div className="home-btn-label">グループ管理</div><div className="home-btn-desc">メンバー登録・QRコード発行</div></div>
-          <div className="home-btn-arrow">›</div>
-        </button>
-        <button className="home-btn" onClick={()=>setPage("scoreSelect")}>
-          <div className="home-btn-icon score">📝</div>
-          <div><div className="home-btn-label">スコア入力</div><div className="home-btn-desc">当日グループ毎にスコア入力</div></div>
           <div className="home-btn-arrow">›</div>
         </button>
         <button className="home-btn" onClick={()=>setPage("ranking")}>
@@ -884,35 +829,11 @@ function GroupDetailPage({ gn, groups, setGroups, config, connected, showToast, 
           </div>
           <div className="qr-hint">📌 メンバー情報はSpreadsheetから自動取得されます。</div>
         </div>
-        <button className="primary-btn gold" onClick={()=>setPage("scoreInput")}>📝 スコア入力を開始 →</button>
       </>)}
     </div>
   </>);
 }
 
-// ══════════════════════════════════════════════════════════════
-// SCORE SELECT
-// ══════════════════════════════════════════════════════════════
-function ScoreSelectPage({ groups, setSel, setPage }) {
-  const active = Object.entries(groups).filter(([_,m])=>m.length>0).sort((a,b)=>Number(a[0])-Number(b[0]));
-  return (<>
-    <div className="topbar"><button className="topbar-back" onClick={()=>setPage("home")}>‹</button>
-      <div className="topbar-logo">DJGA</div><div className="topbar-sep" /><div className="topbar-info"><strong>スコア入力</strong></div></div>
-    <div className="gm">
-      <div className="gm-title">スコア入力</div><div className="gm-sub">グループを選んでください。</div>
-      {active.length===0&&<p style={{textAlign:"center",padding:"40px 0",color:"var(--ink4)"}}>グループが登録されていません</p>}
-      <div style={{display:"flex",flexDirection:"column",gap:8}}>
-        {active.map(([n,m])=>(
-          <button key={n} className="home-btn" onClick={()=>{setSel(n);setPage("scoreInput");}}>
-            <div className="home-btn-icon grp" style={{fontSize:18,fontFamily:"'Barlow Condensed'",fontWeight:700}}>{n}</div>
-            <div><div className="home-btn-label">{n}組</div><div className="home-btn-desc">{m.map(x=>x.name).join("、")}</div></div>
-            <div className="home-btn-arrow">›</div>
-          </button>
-        ))}
-      </div>
-    </div>
-  </>);
-}
 
 // ══════════════════════════════════════════════════════════════
 // RANKING PAGE
@@ -981,178 +902,6 @@ function RankingPage({ config, connected, setPage }) {
           </div>
         );
       })}
-    </div>
-  </>);
-}
-
-// ══════════════════════════════════════════════════════════════
-// SCORE INPUT (v4 integrated, config-driven, GAS save)
-// ══════════════════════════════════════════════════════════════
-function ScoreInputPage({ gn, members, config, connected, showToast, setPage }) {
-  const [phase, setPhase] = useState("setup");
-  const [lm, setLm] = useState(members);
-  const [sh, setSh] = useState(0);
-  const [hole, setHole] = useState(0);
-  const [scores, setScores] = useState(()=>members.map(()=>Array(18).fill("")));
-  const [ap, setAp] = useState(0);
-  const [ss, setSs] = useState("ok");
-  const [showCard, setSC] = useState(false);
-  const P=config.par, W=config.white, R=config.red;
-
-  const tc=lm.length*18, fc=scores.flat().filter(v=>v!=="").length, allF=fc===tc;
-  const par=P[hole], nine=hole<9?"OUT":"IN";
-
-  const next=()=>{const n=(hole+1)%18;if(allF||n===sh)setSC(true);else setHole(n);};
-  const prev=()=>setHole((hole-1+18)%18);
-  const isLast=()=>(hole+1)%18===sh;
-  const setScore=(pi,hi,val)=>{setScores(p=>{const n=p.map(r=>[...r]);n[pi][hi]=val;return n;});setSs("pending");};
-
-  const touchX=useRef(null);
-  const onTS=e=>{touchX.current=e.touches[0].clientX;};
-  const onTE=e=>{if(touchX.current===null)return;const dx=e.changedTouches[0].clientX-touchX.current;if(dx<-60)next();else if(dx>60)prev();touchX.current=null;};
-
-  const totals=scores.map((s,pi)=>{
-    const out=sumArr(s.slice(0,9)),inn=sumArr(s.slice(9)),gross=out+inn;
-    const hc=getHC(s,P,config.hidden,config.maxHC,config.hcMode,lm[pi]?.fixedHC);
-    return{out,in:inn,gross,hc,net:gross>0?Math.round((gross-hc)*10)/10:0};
-  });
-  const haf=h=>scores.every(s=>s[h]!=="");
-  const hsf=h=>scores.some(s=>s[h]!=="");
-  const btnLabel=allF?"全ホール入力完了 → 確認":isLast()?"最終ホール → カード":`次 → H${(hole+1)%18+1}`;
-
-  // Setup
-  if(phase==="setup"){
-    const togTee=pi=>setLm(p=>p.map((m,i)=>i===pi?{...m,tee:m.tee==="white"?"red":"white"}:m));
-    const pick=i=>{setSh(i);setHole(i);setPhase("input");};
-    return(<>
-      <div className="topbar"><button className="topbar-back" onClick={()=>setPage("home")}>‹</button>
-        <div className="topbar-logo">DJGA</div><div className="topbar-sep" />
-        <div className="topbar-info"><strong>{gn}組 — スタート設定</strong>{config.courseName}</div></div>
-      <div className="setup-screen">
-        <div className="setup-section"><div className="setup-sec-title">ティー設定</div>
-          {lm.map((m,pi)=>(<div key={pi} className="tee-row"><div className="tee-avatar">{m.name[0]}</div>
-            <div className="tee-name-block"><div className="tee-name">{m.name}</div><div className="tee-gender">{m.tee==="white"?"White":"Red"} Tee</div></div>
-            <button className={"tee-toggle "+m.tee} onClick={()=>togTee(pi)}><span className={"tee-toggle-dot "+m.tee} /><span className="tee-toggle-label">{m.tee==="white"?"White":"Red"}</span></button>
-          </div>))}
-        </div>
-        <div><div className="setup-title">スタートホール</div><div className="setup-sub">ショットガンは割り当てホールを、通常は「1」。</div></div>
-        <div className="setup-section"><div className="setup-sec-title">ホール番号</div>
-          <div className="hole-picker">{Array.from({length:18},(_,i)=>(<button key={i} className={"hole-pick-btn"+(i>=9?" in-start":"")} onClick={()=>pick(i)}>{i+1}</button>))}</div>
-        </div>
-      </div>
-    </>);
-  }
-
-  // Done
-  if(phase==="done")return(<>
-    <div className="topbar"><div className="topbar-logo">DJGA</div><div className="topbar-sep" /><div className="topbar-info"><strong>{gn}組 — 完了</strong></div></div>
-    <div className="success-screen"><div className="success-ico">🏆</div><div className="success-title">送信完了！</div>
-      <div className="success-sub">スコアがSpreadsheetに保存されました。<br/>順位表は幹事が公開後にご確認ください。</div>
-      <button className="primary-btn" style={{marginTop:24,maxWidth:280}} onClick={()=>setPage("home")}>ホームに戻る</button>
-    </div></>);
-
-  // Confirm
-  if(phase==="confirm")return(<>
-    <div className="topbar"><button className="topbar-back" onClick={()=>setPhase("input")}>‹</button><div className="topbar-sep" />
-      <div className="topbar-info"><strong>{gn}組 — 確認</strong></div></div>
-    <div className="confirm-screen">
-      <div className="confirm-title">最終確認</div><div className="confirm-sub">紙のカードと照合してください</div>
-      <div className="sc-wrap" style={{marginBottom:16,borderRadius:10,border:"1px solid var(--bdr)"}}>
-        <table className="sc-table"><thead><tr><th className="nl">名前</th>
-          {Array.from({length:9},(_,i)=><th key={i}>{i+1}</th>)}<th>OUT</th>
-          {Array.from({length:9},(_,i)=><th key={i+9}>{i+10}</th>)}<th>IN</th>
-          <th>GR</th><th>HC</th><th>NET</th></tr></thead><tbody>
-          {lm.map((m,pi)=>{const s=scores[pi],t=totals[pi];return(<tr key={pi}><td className="nl">{m.name.split(" ")[0]}</td>
-            {s.slice(0,9).map((v,i)=><td key={i} className={v?scClass(v,P[i]):""}>{v||"·"}</td>)}<td className="tot">{t.out||"—"}</td>
-            {s.slice(9).map((v,i)=><td key={i+9} className={v?scClass(v,P[i+9]):""}>{v||"·"}</td>)}<td className="tot">{t.in||"—"}</td>
-            <td className="tot">{t.gross||"—"}</td><td>{t.hc||"—"}</td><td className="net">{t.net||"—"}</td></tr>);})}
-        </tbody></table></div>
-      <div className="warn-box">⚠️ 送信後の修正は幹事にお願いしてください（Spreadsheetで直接編集可）。</div>
-      <div className="confirm-btns">
-        <button className="btn-back2" onClick={()=>setPhase("input")}>← 修正</button>
-        <button className="btn-send" onClick={async()=>{
-          if(connected){try{await API.saveScores(gn,lm,scores,config.hcMode);showToast("✅ Spreadsheetに送信完了！");}catch{showToast("❌ 送信失敗");return;}}
-          else showToast("⚠️ 未接続のため送信できません");
-          setPhase("done");
-        }}>送信する ✓</button>
-      </div>
-    </div></>);
-
-  // Input
-  return(<>
-    <div className="topbar">
-      <button className="topbar-back" onClick={()=>{if(confirm("離れますか？"))setPage("home");}}>‹</button>
-      <div className="topbar-logo">DJGA</div><div className="topbar-sep" />
-      <div className="topbar-info"><strong>{gn}組</strong>{config.courseName}</div>
-      <div className="topbar-space" />
-      <div className="autosave"><div className={"autosave-dot"+(ss==="pending"?" pend":"")} />{ss==="pending"?"入力中":"OK"}</div>
-    </div>
-    <div onTouchStart={onTS} onTouchEnd={onTE}>
-      <div className="hole-header">
-        <div className="hole-nav">
-          <button className="hole-nav-btn" onClick={prev}>‹</button>
-          <div className="hole-dots">{Array.from({length:18},(_,i)=>{
-            const cls=i===hole?"active":haf(i)?"done":hsf(i)?"partial":"empty";
-            return <button key={i} className={"hole-dot "+cls+(i===sh?" startmark":"")} onClick={()=>setHole(i)}>{i+1}</button>;
-          })}</div>
-          <button className="hole-nav-btn" onClick={next}>›</button>
-        </div>
-        <div className="hole-main">
-          <div className="hole-num">{hole+1}</div>
-          <div className="hole-meta">
-            <div className="hole-badges">
-              <span className="nine-badge-h">{nine}</span>
-              <span className="hole-par-lbl">PAR {par}</span>
-              {hole===sh&&<span className="start-badge">START</span>}
-            </div>
-            <div className="hole-yards">
-              <span className="yard-item"><span className="yard-dot" style={{background:"#fff",border:"1px solid #bbb"}} />{W[hole]||"—"}yd</span>
-              <span className="yard-item"><span className="yard-dot" style={{background:"#c33"}} />{R[hole]||"—"}yd</span>
-            </div>
-            <div className="hole-progress"><div className="progress-track"><div className="progress-fill" style={{width:`${(fc/tc)*100}%`}} /></div><span className="progress-text">{fc}/{tc}</span></div>
-          </div>
-        </div>
-      </div>
-      <div className="players">
-        {lm.map((m,pi)=>{const val=scores[pi][hole],fl=val!=="",act=pi===ap,tk=m.tee||"white",yd=tk==="red"?R[hole]:W[hole],rel=fl?scLabel(val,par):null;return(
-          <div key={pi} className={"pcard"+(fl?" filled":"")+(act?" active":"")} onClick={()=>setAp(pi)}><div className="pcard-inner">
-            <div className="pcard-avatar"><div className={"avatar-circle "+(fl?"avatar-filled":"avatar-empty")}>{m.name[0]}</div></div>
-            <div className="pcard-info"><div className="pcard-name-row"><span className="pcard-name">{m.name}</span>
-              <span className={"tee-badge "+tk}><span className={"tee-dot "+tk} />{tk==="white"?"White":"Red"}</span></div>
-              <div className="pcard-sub">{pi===0&&<span>★</span>}<span>{yd||"—"}yd</span>{!fl&&<span>未入力</span>}</div>
-              {fl&&<div className="pcard-total">計 {sumArr(scores[pi])}{rel&&<span className={"score-badge "+rel[0]} style={{marginLeft:5}}>{rel[1]}</span>}</div>}
-            </div>
-            <Stepper value={val} par={par} onChange={v=>{setScore(pi,hole,v);setAp(pi);}} onFocus={()=>setAp(pi)} />
-          </div></div>);})}
-        <div className="swipe-hint">‹ スワイプでホール移動 ›</div>
-      </div>
-      <div className="bottom-bar">
-        <div className="score-summary">{lm.map((m,pi)=>{const hv=scores[pi][hole],g=totals[pi].gross;return(
-          <div key={pi} className={"summary-cell"+(pi===ap?" hl":"")} onClick={()=>setAp(pi)}>
-            <div className="summary-name">{m.name.split(" ")[0]}</div><div className="summary-score">{hv||"—"}</div><div className="summary-total">計 {g||"—"}</div>
-          </div>);})}</div>
-        <div className="summary-legend">H{hole+1}スコア / 合計</div>
-        <div className="btns">
-          <button className="btn-card" onClick={()=>setSC(true)}>📋</button>
-          <button className={"btn-next"+(allF?" final":"")} onClick={()=>{if(allF)setSC(true);else next();}}>{btnLabel}</button>
-        </div>
-      </div>
-      {showCard&&(
-        <div className="sheet-overlay" onClick={()=>setSC(false)}><div className="sheet" onClick={e=>e.stopPropagation()}>
-          <div className="sheet-handle" /><div className="sheet-title">📋 {gn}組</div>
-          <div className="sc-wrap"><table className="sc-table"><thead><tr><th className="nl">名前</th>
-            {Array.from({length:9},(_,i)=><th key={i}>{i+1}</th>)}<th>OUT</th>
-            {Array.from({length:9},(_,i)=><th key={i+9}>{i+10}</th>)}<th>IN</th><th>GR</th><th>HC</th><th>NET</th></tr></thead><tbody>
-            {lm.map((m,pi)=>{const s=scores[pi],t=totals[pi];return(<tr key={pi}><td className="nl">{m.name.split(" ")[0]}</td>
-              {s.slice(0,9).map((v,i)=><td key={i} className={v?scClass(v,P[i]):""}>{v||"·"}</td>)}<td className="tot">{t.out||"—"}</td>
-              {s.slice(9).map((v,i)=><td key={i+9} className={v?scClass(v,P[i+9]):""}>{v||"·"}</td>)}<td className="tot">{t.in||"—"}</td>
-              <td className="tot">{t.gross||"—"}</td><td>{t.hc||"—"}</td><td className="net">{t.net||"—"}</td></tr>);})}
-          </tbody></table></div>
-          <div className="sheet-footer"><button className="btn-close" onClick={()=>setSC(false)}>閉じる</button>
-            {allF&&<button className="btn-confirm" onClick={()=>{setSC(false);setPhase("confirm");}}>確認・送信 →</button>}
-          </div>
-        </div></div>
-      )}
     </div>
   </>);
 }
