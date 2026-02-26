@@ -281,9 +281,13 @@ const DEFAULTS = {
   hcMode: "newPeria", // "newPeria" or "fixed"
 };
 
-// ── GAS URL保存用（ブラウザ毎） ──────────────────────────────
+// ── GAS URL ──────────────────────────────────────────────────
+// ↓↓↓ ここにGAS URLを貼り付けてください ↓↓↓
+const GAS_URL = "https://script.google.com/macros/s/AKfycby6RQuaIs_KNxf1vIdKIiZV4gbvsjkspnz9SaCQ-pzRxvW8hZCiTpmysIooUuqUbsG4/exec";
+// ↑↑↑ 例: "https://script.google.com/macros/s/AKfycbx.../exec" ↑↑↑
+
 async function loadGasUrl() {
-  try { return localStorage.getItem("djga-gas-url") || ""; } catch { return ""; }
+  try { return localStorage.getItem("djga-gas-url") || GAS_URL; } catch { return GAS_URL; }
 }
 async function saveGasUrl(url) {
   try { localStorage.setItem("djga-gas-url", url); } catch {}
