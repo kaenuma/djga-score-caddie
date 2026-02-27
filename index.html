@@ -282,7 +282,7 @@ const DEFAULTS = {
 
 // ── GAS URL ──────────────────────────────────────────────────
 // ↓↓↓ ここにGAS URLを貼り付けてください ↓↓↓
-const GAS_URL = "https://script.google.com/macros/s/AKfycby6RQuaIs_KNxf1vIdKIiZV4gbvsjkspnz9SaCQ-pzRxvW8hZCiTpmysIooUuqUbsG4/exec";
+const GAS_URL = "YOUR_GAS_URL_HERE";
 // ↑↑↑ 例: "https://script.google.com/macros/s/AKfycbx.../exec" ↑↑↑
 
 async function loadGasUrl() {
@@ -748,14 +748,14 @@ function GroupDetailPage({ gn, groups, setGroups, config, connected, showToast, 
 
   const add = () => {
     const name=nn.trim(); if(!name)return; if(members.length>=6){showToast("⚠️ 最大6名");return;}
-    const hcVal = nh==="" ? "" : Math.max(0, Math.min(54, Number(nh)||0));
+    const hcVal = nh==="" ? "" : Math.max(-54, Math.min(54, Number(nh)||0));
     saveToGAS({...groups,[gn]:[...members,{name,tee:nt,fixedHC:hcVal}]});
     setNn(""); setNh(""); showToast(`✅ ${name} を追加`);
   };
   const del = idx => saveToGAS({...groups,[gn]:members.filter((_,i)=>i!==idx)});
   const togTee = idx => saveToGAS({...groups,[gn]:members.map((m,i)=>i===idx?{...m,tee:m.tee==="white"?"red":"white"}:m)});
   const setFixedHC = (idx, val) => {
-    const v = val==="" ? "" : Math.max(0, Math.min(54, Number(val)||0));
+    const v = val==="" ? "" : Math.max(-54, Math.min(54, Number(val)||0));
     saveToGAS({...groups,[gn]:members.map((m,i)=>i===idx?{...m,fixedHC:v}:m)});
   };
 
