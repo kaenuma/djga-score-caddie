@@ -278,11 +278,13 @@ const DEFAULTS = {
   red:   [306,192,95,351,308,279,337,292,121,  249,123,290,308,466,288,133,369,472],
   hidden:[1,2,4,6,8,10,11,12,14,15,16,17], maxHC: 36,
   hcMode: "newPeria", // "newPeria" or "fixed"
+  dragon: [6,13],       // ドラコンホール（H7, H14）
+  nearpin: [2,8,10,15], // ニアピンホール（H3, H9, H11, H16）
 };
 
 // ── GAS URL ──────────────────────────────────────────────────
 // ↓↓↓ ここにGAS URLを貼り付けてください ↓↓↓
-const GAS_URL = "https://script.google.com/macros/s/AKfycby6RQuaIs_KNxf1vIdKIiZV4gbvsjkspnz9SaCQ-pzRxvW8hZCiTpmysIooUuqUbsG4/exec";
+const GAS_URL = "YOUR_GAS_URL_HERE";
 // ↑↑↑ 例: "https://script.google.com/macros/s/AKfycbx.../exec" ↑↑↑
 
 async function loadGasUrl() {
@@ -674,6 +676,42 @@ function ConfigPage({ config, setConfig, gasUrl, connected, connectGas, showToas
         ))}
       </div>
       )}
+
+      {/* ドラコン・ニアピン */}
+      <div className="cfg-card">
+        <div className="cfg-label">🏆 ドラコン・ニアピン</div>
+        <p style={{fontSize:11,color:"var(--ink4)",marginBottom:10}}>タップで選択（スコア入力画面にバッジ表示されます）</p>
+
+        <div style={{fontSize:12,fontWeight:700,color:"var(--g7)",marginBottom:6}}>🚀 ドラコン（{(c.dragon||[]).length}ホール）</div>
+        <div className="hidden-grid" style={{marginBottom:12}}>
+          {Array.from({length:18},(_,i)=>(
+            <button key={i} className={"hidden-btn"+((c.dragon||[]).includes(i)?" on":"")}
+              style={(c.dragon||[]).includes(i)?{borderColor:"#C62828",background:"#FFEBEE",color:"#C62828"}:{}}
+              onClick={()=>{
+                const d=[...(c.dragon||[])],idx=d.indexOf(i);
+                if(idx>=0)d.splice(idx,1);else d.push(i);
+                d.sort((a,b)=>a-b);setC({...c,dragon:d});
+              }}>
+              {i+1}<span className="hidden-par">P{c.par[i]}</span>
+            </button>
+          ))}
+        </div>
+
+        <div style={{fontSize:12,fontWeight:700,color:"var(--g7)",marginBottom:6}}>🎯 ニアピン（{(c.nearpin||[]).length}ホール）</div>
+        <div className="hidden-grid">
+          {Array.from({length:18},(_,i)=>(
+            <button key={i} className={"hidden-btn"+((c.nearpin||[]).includes(i)?" on":"")}
+              style={(c.nearpin||[]).includes(i)?{borderColor:"#1565C0",background:"#E3F2FD",color:"#1565C0"}:{}}
+              onClick={()=>{
+                const n=[...(c.nearpin||[])],idx=n.indexOf(i);
+                if(idx>=0)n.splice(idx,1);else n.push(i);
+                n.sort((a,b)=>a-b);setC({...c,nearpin:n});
+              }}>
+              {i+1}<span className="hidden-par">P{c.par[i]}</span>
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="info-row" style={{marginBottom:12}}>
         <span style={{fontSize:18}}>📋</span>

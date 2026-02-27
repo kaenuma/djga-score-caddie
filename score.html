@@ -37,6 +37,9 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--ink)
 .hole-dot.done{background:var(--g3);color:white;}
 .hole-dot.active{background:var(--gold);color:var(--g9);transform:scale(1.15);font-weight:900;}
 .hole-dot.startmark{box-shadow:0 0 0 2px var(--gold2);}
+.hole-dot.dragon-mark{border-bottom:3px solid #C62828;}
+.hole-dot.nearpin-mark{border-bottom:3px solid #1565C0;}
+.hole-dot.dragon-mark.nearpin-mark{border-bottom:3px solid #7B1FA2;}
 .hole-main{display:flex;align-items:flex-end;gap:14px;}
 .hole-num{font-family:'Barlow Condensed',sans-serif;font-size:60px;font-weight:700;color:white;line-height:1;flex-shrink:0;}
 .hole-meta{flex:1;padding-bottom:4px;}
@@ -44,6 +47,9 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--ink)
 .nine-badge-h{font-size:10px;font-weight:700;background:rgba(255,255,255,.1);color:rgba(255,255,255,.5);padding:2px 8px;border-radius:99px;letter-spacing:.5px;}
 .hole-par-lbl{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--gold2);}
 .start-badge{font-size:10px;font-weight:700;background:var(--g8);color:var(--gold2);padding:2px 8px;border-radius:99px;}
+.dragon-badge{font-size:10px;font-weight:700;background:#C62828;color:white;padding:2px 8px;border-radius:99px;animation:pulse 2s infinite;}
+.nearpin-badge{font-size:10px;font-weight:700;background:#1565C0;color:white;padding:2px 8px;border-radius:99px;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.7;}}
 .hole-yards{font-size:12px;color:rgba(255,255,255,.4);margin-bottom:5px;display:flex;gap:10px;}
 .yard-item{display:flex;align-items:center;gap:4px;}
 .yard-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
@@ -444,7 +450,9 @@ function ScoreInputPage({ gn, members, config, showToast }) {
         <button className="hole-nav-btn" onClick={prev}>‹</button>
         <div className="hole-dots">{Array.from({length:18},(_,i)=>{
           const st=haf(i)?"done":hsf(i)?"partial":"empty";
-          return <button key={i} className={`hole-dot ${st}${i===hole?" active":""}${i===sh?" startmark":""}`}
+          const dr=(config.dragon||[]).includes(i);
+          const np=(config.nearpin||[]).includes(i);
+          return <button key={i} className={`hole-dot ${st}${i===hole?" active":""}${i===sh?" startmark":""}${dr?" dragon-mark":""}${np?" nearpin-mark":""}`}
             onClick={()=>{setHole(i);saveLocal(scores,i,lm,sh);}}>{i+1}</button>;
         })}</div>
         <button className="hole-nav-btn" onClick={next}>›</button>
@@ -453,7 +461,10 @@ function ScoreInputPage({ gn, members, config, showToast }) {
         <div className="hole-num">{hole+1}</div>
         <div className="hole-meta">
           <div className="hole-badges"><span className="nine-badge-h">{nine}</span><span className="hole-par-lbl">Par {par}</span>
-            {hole===sh&&<span className="start-badge">START</span>}</div>
+            {hole===sh&&<span className="start-badge">START</span>}
+            {(config.dragon||[]).includes(hole)&&<span className="dragon-badge">🚀 ドラコン</span>}
+            {(config.nearpin||[]).includes(hole)&&<span className="nearpin-badge">🎯 ニアピン</span>}
+          </div>
           <div className="hole-yards">
             <span className="yard-item"><span className="yard-dot" style={{background:"#fff",border:"1px solid #aaa"}} />{W[hole]}y</span>
             <span className="yard-item"><span className="yard-dot" style={{background:"#cc3333"}} />{R[hole]}y</span>
